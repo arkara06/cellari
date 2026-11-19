@@ -187,7 +187,7 @@ td.n{font-family:var(--f-data);text-align:right;font-variant-numeric:tabular-num
 h2{font-family:var(--f-display);font-size:1.3rem;margin:0;text-wrap:balance}
 h3{margin:0;font-size:1rem}
 p{margin:0}
-.toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:rgba(30,22,18,.9);border:1px solid var(--glass-line);color:var(--ink);padding:8px 16px;border-radius:99px;font-size:.88rem;font-weight:700;z-index:20;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
+.toast{width:max-content;max-width:calc(100% - 32px);text-align:center;position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:rgba(30,22,18,.9);border:1px solid var(--glass-line);color:var(--ink);padding:8px 16px;border-radius:99px;font-size:.88rem;font-weight:700;z-index:20;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
 details summary{cursor:pointer;font-weight:700}
 /* v2 additions: game picker, score, metronome, traces */
 .games{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
@@ -236,6 +236,45 @@ tr.click{cursor:pointer}
 tr.sel td{background:rgba(180,83,42,.14)}
 .chartcard[hidden]{display:none!important}
 .toggle-row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+/* v3: feedback modes, teacher, fingerboard */
+.stats3{display:flex}
+.stats3>div{flex:1 1 0;min-width:0}
+.holdbar.neutral i{background:linear-gradient(90deg,var(--accent-deep),var(--accent-text));box-shadow:0 0 12px var(--accent-glow)}
+.fbbadge{align-self:flex-start;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent-text);border:1px solid rgba(227,148,106,.4);border-radius:99px;padding:3px 10px;background:rgba(180,83,42,.12)}
+.chip.seen{border-color:rgba(255,222,200,.25);background:rgba(255,236,222,.08)}
+.chip.miss{border-color:rgba(240,179,94,.5);background:var(--warn-soft)}
+.score .n.seen .head{fill:var(--muted)} .score .n.seen .head.open{fill:none;stroke:var(--muted)}
+.score .n.seen line{stroke:var(--muted)} .score .n.seen text{fill:var(--muted)}
+.inslist{display:flex;flex-direction:column;gap:10px}
+.ins{border:1px solid var(--line);border-radius:16px;padding:12px 14px;background:rgba(255,236,222,.035);display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.ins h4{margin:0;font-family:var(--f-display);font-size:1.12rem;line-height:1.25;text-wrap:balance}
+.ins p{font-size:.88rem;color:var(--muted);line-height:1.45}
+.ins p b{color:var(--ink);font-weight:700}
+.ins .area{font-size:.66rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-text);padding:2px 8px;border-radius:99px;background:rgba(180,83,42,.16);border:1px solid rgba(227,148,106,.28)}
+.ins.good{border-color:rgba(99,214,158,.28);background:rgba(99,214,158,.05)}
+.ins.good .area{color:var(--good);background:var(--good-soft);border-color:rgba(99,214,158,.3)}
+.cents-note{font-size:.76rem}
+.fbmap{width:100%}
+.fbmap svg{display:block;width:100%;max-width:440px;height:auto;margin:0 auto}
+.fb-board{fill:rgba(0,0,0,.35);stroke:var(--line)}
+.fb-nut{stroke:rgba(243,234,227,.55);stroke-width:3;stroke-linecap:round}
+.fb-str{stroke:rgba(214,190,160,.45)}
+.fb-sl{fill:var(--ink);font-family:var(--f-display);font-weight:700;font-size:14px}
+.fb-rl{fill:var(--muted);font-family:var(--f-body);font-size:10.5px;font-weight:700}
+.fb-empty{fill:rgba(255,236,222,.03);stroke:rgba(255,222,200,.10);stroke-dasharray:2 3}
+.fb-nn{fill:var(--ink);font-family:var(--f-display);font-weight:700;font-size:10px}
+.fb-nn.faint{fill:var(--faint);font-weight:400}
+.fb-v{fill:var(--ink);font-family:var(--f-data);font-size:9.5px}
+.fb-c{stroke-width:1.5}
+.fb-c.in{fill:rgba(170,160,150,.20);stroke:rgba(200,190,180,.45)}
+.fb-c.flat1{fill:rgba(111,163,216,.22);stroke:rgba(111,163,216,.55)}
+.fb-c.flat2{fill:rgba(111,163,216,.45);stroke:rgba(140,185,230,.8)}
+.fb-c.flat3{fill:rgba(111,163,216,.75);stroke:#A9CBEE}
+.fb-c.sharp1{fill:rgba(236,160,70,.22);stroke:rgba(236,160,70,.55)}
+.fb-c.sharp2{fill:rgba(236,160,70,.45);stroke:rgba(240,180,110,.8)}
+.fb-c.sharp3{fill:rgba(236,160,70,.75);stroke:#F5C78E}
+.fb-sum{font-size:.84rem;text-align:center;margin-top:6px}
+.fb-sum b{color:var(--ink)}
 </style>
 <div class="app">
 <main>
@@ -286,6 +325,13 @@ tr.sel td{background:rgba(180,83,42,.14)}
       <p class="muted" style="font-size:.9rem" id="gameDesc"></p>
     </div>
     <div class="card">
+      <div class="field"><span class="lab">Feedback</span><div class="seg" id="segFb"></div>
+        <p class="muted" style="font-size:.84rem" id="fbHint"></p></div>
+    </div>
+    <div class="card">
+      <div class="field" id="focusField" hidden><span class="lab">Focus notes from your teacher’s notes</span>
+        <div class="chips" id="focusChips"></div>
+        <div class="row"><span class="muted" style="font-size:.82rem">These replace the scale until you clear them.</span><button class="btn small" id="clearFocus">Clear focus</button></div></div>
       <div class="grid2">
         <div class="field" data-g="scale random ear melody"><label for="selTonic">Key</label><select id="selTonic"></select></div>
         <div class="field" data-g="long"><label for="selLong">Note</label><select id="selLong"></select></div>
@@ -318,7 +364,7 @@ tr.sel td{background:rgba(180,83,42,.14)}
       </div>
       <div class="grid2">
         <div class="field" data-g="scale random ear melody long"><span class="lab">In tune within</span><div class="seg" id="segTol"></div></div>
-        <div class="field" data-g="scale random ear melody" data-free><span class="lab">Hold to count</span><div class="seg" id="segHold"></div></div>
+        <div class="field" data-g="scale random ear melody" data-free><span class="lab" id="holdLbl">Hold to count</span><div class="seg" id="segHold"></div></div>
       </div>
       <div class="field">
         <span class="lab" id="prevLbl">Notes</span>
@@ -340,6 +386,7 @@ tr.sel td{background:rgba(180,83,42,.14)}
         <span class="eyebrow" id="gLabel" style="min-width:0">Scale</span>
         <span class="mono muted" id="gCount">1 / 15</span>
       </div>
+      <span class="fbbadge" id="fbBadge" hidden>Results at the end</span>
       <div class="target" id="targetLetter"><div class="notebig" id="gNote">D<sub>3</sub></div></div>
       <div class="score" id="scoreBox"></div>
       <div id="metroRow" class="col" style="gap:6px">
@@ -351,9 +398,9 @@ tr.sel td{background:rgba(180,83,42,.14)}
       <div class="holdbar" id="holdWrap" aria-hidden="true"><i id="hold"></i></div>
       <div id="liveTrace"></div>
       <div class="stats3">
-        <div><b id="gTime" class="gTimeVal">0.0</b><span id="gTimeLbl">seconds</span></div>
-        <div><b id="gCents">–</b><span>cents</span></div>
-        <div><b id="gHz">–</b><span>Hz</span></div>
+        <div id="statT"><b id="gTime" class="gTimeVal">0.0</b><span id="gTimeLbl">seconds</span></div>
+        <div id="statC"><b id="gCents">–</b><span>cents</span></div>
+        <div id="statH"><b id="gHz">–</b><span>Hz</span></div>
       </div>
       <div class="row">
         <button class="btn small" id="hearBtn">Hear note</button>
@@ -387,6 +434,17 @@ tr.sel td{background:rgba(180,83,42,.14)}
       <select id="selGame" aria-label="Game"></select>
       <select id="selFilter" aria-label="Exercise"></select>
     </div>
+    <div class="card">
+      <h3>Teacher’s notes</h3>
+      <p class="muted" style="font-size:.82rem">Patterns in your recent playing, what usually causes them, and what to do.</p>
+      <div class="inslist" id="teachList"></div>
+      <p class="muted cents-note">100 cents = one half step. Most listeners start to notice around 5–10 cents.</p>
+    </div>
+    <div class="card" id="fbCard">
+      <h3>Where your fingers land</h3>
+      <p class="muted" style="font-size:.82rem">Average intonation for each spot in first position. Blue spots are flat (move toward the bridge), amber spots are sharp (move toward the scroll).</p>
+      <div class="fbmap" id="fbMap"></div>
+    </div>
     <div class="tiles" id="tiles"></div>
     <div class="card chartcard" id="cTimeCard">
       <h3>Time to land in tune</h3>
@@ -398,6 +456,11 @@ tr.sel td{background:rgba(180,83,42,.14)}
       <h3>First-attempt accuracy</h3>
       <p class="muted" style="font-size:.82rem">How far off (in cents) your first sound was, median per session. Lower means your fingers find the spot sooner.</p>
       <div class="chart" id="cLand"></div>
+    </div>
+    <div class="card chartcard" id="cBlindCard">
+      <h3>Accuracy without hints</h3>
+      <p class="muted" style="font-size:.82rem">Delayed-feedback sessions: how far a typical note settled from the target, in cents. Lower is better. This is the truest measure of what your hand knows.</p>
+      <div class="chart" id="cBlind"></div>
     </div>
     <div class="card chartcard" id="cInCard">
       <h3>In tune on the beat</h3>
@@ -484,7 +547,7 @@ function buildScale(st){
     notes = [];
     for(let k=0; k<=7*st.oct; k++){
       const o = Math.floor(k/7), d = k%7;
-      notes.push(spellNote(base + 12*o + iv[d], (L0 + d) % 7));
+      notes.push(Object.assign(spellNote(base + 12*o + iv[d], (L0 + d) % 7), {deg:d}));
     }
   }
   if(st.dir === "updown") notes = notes.concat(notes.slice(0,-1).reverse());
@@ -677,11 +740,480 @@ function melodyLabel(st){
   return `Melody · ${keyLabel(st)} · ${strs} strings · ${posName} · ${st.bars} bars ${st.meter===3?"3/4":"4/4"}`;
 }
 
+/* ---------- teacher: how technique faults show up in the audio, and what to do about them ---------- */
+const FINGER_OFF = {"0":0, "½":1, "1":2, "2":3, "3":4, "4":5};
+const FINGER_NAME = {"0":"open string", "½":"low 1st finger", "1":"1st finger", "2":"2nd finger", "3":"3rd finger", "4":"4th finger"};
+const FINGER_INTERVAL = {"½":"a half step", "1":"a whole step", "2":"a minor third", "3":"a major third", "4":"a perfect fourth"};
+const FINGER_TIP = {
+  "½": "Reach back from the 1st finger with a small, relaxed stretch instead of moving the whole hand.",
+  "1": "It sets the frame for every other finger. On the G string it plays A, which makes the open A string ring when it's exactly right.",
+  "2": "Give it its own spot, exactly halfway between the 1st and 3rd fingers, instead of letting it lean on a neighbour.",
+  "3": "It's the weakest finger and tends to fall back toward the 2nd. Keep the 2nd finger down behind it as support.",
+  "4": "When it's right, the open string below rings along (G on the D string, D on the A string, C on the G string). Keep it curved and let the elbow help it reach."
+};
+const FOCUS_SET = focus => ({game:"random", focus, feedback:"note", smart:true});
+
+/* first-position fingering for a pitch: which string, how far above the open string, which finger */
+function fingering(m){
+  let best = null;
+  OPEN.forEach(s => { const off = m - s; if(off >= 0 && off <= 5 && (!best || off < best.off)) best = {s, off}; });
+  if(!best) return {s:null, off:null, f:"up"};
+  return {s:best.s, off:best.off, f: best.off === 0 ? "0" : best.off === 1 ? "½" : String(best.off - 1)};
+}
+const pcName = m => spellPlain(m).label;
+const fmtC = v => (v > 0.5 ? "+" : v < -0.5 ? "−" : "") + Math.abs(Math.round(v)) + "¢";
+const fs = v => v < 0 ? "flat" : "sharp";
+const baseName = n => (n || "").replace(/-?\d+$/, "");
+const uniq = a => [...new Set(a)];
+
+/* where a note was actually placed: blind result if there is one, otherwise the first sound */
+function placement(r, s){
+  if(!r || r.skip) return null;
+  if(r.fin != null) return r.fin;
+  if(r.sm != null) return r.sm;
+  if(r.off != null) return r.off;
+  if(r.land != null) return r.land;
+  if(sessMode(s) === "long" && r.mean != null) return r.mean;
+  return null;
+}
+function collectItems(sessions){
+  const out = [];
+  sessions.forEach(s => {
+    if(!s.notes) return;
+    s.notes.forEach((r, i) => {
+      const prev = i > 0 ? s.notes[i-1] : null;
+      out.push({s, r, m:r.m, n:r.n, v:placement(r, s), prevM: prev && !prev.skip ? prev.m : null, land:r.land, fin:r.fin,
+        a:r.a || 0, d:r.d, sd:r.sd, att:r.att,
+        blind: s.feedback === "note" || s.feedback === "end", live: !s.feedback || s.feedback === "live"});
+    });
+  });
+  return out;
+}
+/* the notes to drill: the ones furthest off in a given direction */
+function focusNotes(list, dir){
+  const by = {};
+  list.forEach(x => { if(x.v != null) (by[x.m] = by[x.m] || []).push(x.v); });
+  return Object.entries(by).map(([m, a]) => [+m, median(a)])
+    .sort((a, b) => dir < 0 ? a[1] - b[1] : b[1] - a[1]).slice(0, 4).map(x => x[0]);
+}
+
+function diagnose(sessions, opts){
+  opts = opts || {};
+  const issues = [], strengths = [];
+  const add = o => issues.push(o), praise = o => strengths.push(Object.assign({good:true, area:"Going well"}, o));
+  const items = collectItems(sessions);
+  const valid = items.filter(x => x.v != null);
+  const good = valid.filter(x => Math.abs(x.v) < 60);
+  good.forEach(x => x.fg = fingering(x.m));
+  const wrong = valid.filter(x => Math.abs(x.v) >= 60);
+  const vs = a => a.map(x => x.v);
+  const opens = good.filter(x => x.fg.f === "0");
+  const fingered = good.filter(x => x.fg.f !== "0" && x.fg.f !== "up");
+  const medOpen = opens.length >= 3 ? median(vs(opens)) : null;
+  const medFing = fingered.length >= 8 ? median(vs(fingered)) : null;
+
+  /* 1. tuning (or a heavy bow) on open strings */
+  let tuning = false;
+  if(medOpen != null && Math.abs(medOpen) >= 8){
+    tuning = true;
+    add({key:"tune", pri:92, area:"Tuning", title:`Your open strings sound ${fs(medOpen)}`,
+      seen:`Open strings averaged ${fmtC(medOpen)} over ${opens.length} notes. Every fingered note is measured against A = ${S().a4} Hz, so this colours everything else.`,
+      fix: medOpen < 0
+        ? "Retune before you play: A first with the Tuner tab, then D, G and C, using the fine tuners for small changes. If a string reads in tune when you pluck it but flat when you bow, the bow is the cause: pressing too hard flattens the pitch. Let the arm's weight sink in instead of pushing down with the hand, and keep the bow moving."
+        : "Retune before you play: A first with the Tuner tab, then D, G and C, using the fine tuners for small changes. Strings drift sharp when the room warms up or right after new strings are put on.",
+      action:{label:"Open the tuner", view:"tuner"}});
+  }
+
+  /* 2. whole hand frame too far up or down the fingerboard (anchor: 1st finger if known) */
+  const f1 = fingered.filter(x => x.fg.f === "1");
+  const anchor = f1.length >= 3 ? median(vs(f1)) : medFing;
+  if(medFing != null && anchor != null && Math.abs(anchor) >= 8 && Math.abs(medFing) >= 8 && !(tuning && Math.sign(medOpen) === Math.sign(medFing))){
+    const flat = anchor < 0;
+    add({key:"frame-pos", pri:80 + Math.min(12, Math.abs(medFing)/2), area:"Left hand",
+      title: flat ? "Your hand sits a little too far toward the scroll" : "Your hand sits a little too close to the bridge",
+      seen: f1.length >= 3 ? `Even your 1st finger, which anchors the hand, landed ${fmtC(anchor)} on average, and the other fingers follow it.` : `Fingered notes landed ${fmtC(medFing)} on average over ${fingered.length} notes, on every finger, not just one.`,
+      fix:(flat ? "Move the whole hand slightly toward the bridge (down the fingerboard)" : "Move the whole hand slightly toward the scroll (up the fingerboard)") +
+        ", keeping the finger spacing as it is. Set the frame from one reference: the 4th finger on the D string plays G, and when it's exactly right the open G string rings along. Find that ring, then let the other fingers fall into place behind it.",
+      action:{label:"Practise G on the D string", set:{game:"long", longNote:55, longFb:"live"}}});
+  }
+
+  /* 3. hand frame shape: higher fingers drift relative to the 1st */
+  const byF = {};
+  fingered.forEach(x => (byF[x.fg.f] = byF[x.fg.f] || []).push(x.v));
+  const fMed = {};
+  Object.keys(byF).forEach(k => { if(byF[k].length >= 3) fMed[k] = median(byF[k]); });
+  let frameIssue = false;
+  const hi = fMed["4"] != null ? "4" : fMed["3"] != null ? "3" : null;
+  if(fMed["1"] != null && hi){
+    const spread = fMed[hi] - fMed["1"];
+    if(Math.abs(spread) >= 12){
+      frameIssue = true;
+      const narrow = spread < 0;
+      const worst = focusNotes(fingered.filter(x => x.fg.f === hi || x.fg.f === "3"), narrow ? -1 : 1);
+      add({key:"frame-shape", pri:76 + Math.min(16, Math.abs(spread)/2), area:"Left hand",
+        title: narrow ? "Your higher fingers land flat: open the hand frame" : "Your higher fingers land sharp: the hand stretches too far",
+        seen:`1st finger ${fmtC(fMed["1"])}, ${FINGER_NAME[hi]} ${fmtC(fMed[hi])}. The further a finger is from the 1st, the ${narrow ? "flatter" : "sharper"} it lands.`,
+        fix: narrow
+          ? "In first position the fingers sit a half step apart, about one finger's width each. Yours drift back toward the 1st finger. Keep the frame open with the thumb behind the 2nd finger, and lift the elbow a little so the 4th finger stands curved on its tip instead of collapsing."
+          : "In first position the fingers sit only a half step apart. Yours spread wider, often from tension. Let the hand relax into a curved shape with the thumb behind the 2nd finger, and let the arm bring the 4th finger to the string instead of stretching for it.",
+        drill:"On the D string, place E (1), then add F (2), F♯ (3) and G (4) one at a time, keeping each finger down. The G should make the open G string ring.",
+        action: worst.length ? {label:"Drill these notes", set:FOCUS_SET(worst)} : null});
+    }
+  }
+
+  /* 4. one finger out of line with the others */
+  Object.keys(fMed).forEach(k => {
+    if(frameIssue && (k === hi || k === "1")) return;
+    const others = fingered.filter(x => x.fg.f !== k);
+    if(others.length < 5) return;
+    const diff = fMed[k] - median(vs(others));
+    if(Math.abs(diff) < 12) return;
+    const off = FINGER_OFF[k], ex = OPEN.slice(1).map(s => `${pcName(s + off)} on the ${STRING_NAMES[s]} string`).join(", ");
+    add({key:"finger-"+k, pri:66 + Math.min(14, Math.abs(diff)/2), area:"Left hand",
+      title:`Your ${FINGER_NAME[k]} lands ${fs(diff)}`,
+      seen:`${FINGER_NAME[k][0].toUpperCase() + FINGER_NAME[k].slice(1)} notes averaged ${fmtC(fMed[k])}, about ${Math.abs(Math.round(diff))}¢ ${diff < 0 ? "lower" : "higher"} than your other fingers.`,
+      fix:`The ${FINGER_NAME[k]} plays ${FINGER_INTERVAL[k]} above the open string (${ex}). Place it a little toward the ${diff < 0 ? "bridge" : "scroll"}. ${FINGER_TIP[k]}`,
+      drill:"Place it without looking, play, then check. Ten repetitions with Feedback set to After each note.",
+      action:{label:"Drill these notes", set:FOCUS_SET(focusNotes(fingered.filter(x => x.fg.f === k), Math.sign(diff)))}});
+  });
+
+  /* 5. one string out of line: the arm doesn't follow across strings */
+  const byS = {};
+  fingered.forEach(x => (byS[x.fg.s] = byS[x.fg.s] || []).push(x.v));
+  Object.keys(byS).forEach(k => {
+    if(byS[k].length < 4) return;
+    const others = fingered.filter(x => x.fg.s != k);
+    if(others.length < 5) return;
+    const md = median(byS[k]), diff = md - median(vs(others));
+    if(Math.abs(diff) < 10) return;
+    const sName = STRING_NAMES[k];
+    add({key:"string-"+k, pri:62 + Math.min(12, Math.abs(diff)/2), area:"Left hand",
+      title:`Notes on the ${sName} string land ${fs(diff)}`,
+      seen:`On the ${sName} string you averaged ${fmtC(md)}, about ${Math.abs(Math.round(diff))}¢ ${diff < 0 ? "lower" : "higher"} than on your other strings.`,
+      fix:`Bring the whole arm to each string, not just the fingers. The elbow sits highest for the C string and lowest for the A string. If it stays put when you cross, the fingers reach the string at a slant and land ${fs(diff)}. Before playing on the ${sName} string, ${+k <= 43 ? "raise" : "lower"} the elbow so the fingers drop straight onto it with the same spacing.`,
+      action:{label:"Drill these notes", set:FOCUS_SET(focusNotes(fingered.filter(x => x.fg.s == k), Math.sign(diff)))}});
+  });
+
+  /* 6. key signature forgotten (score reading) */
+  const forgot = wrong.filter(x => x.a !== 0 && x.s.disp === "score" && Math.abs(x.v + 100*x.a) < 35);
+  if(forgot.length >= 2){
+    const names = uniq(forgot.map(x => baseName(x.n)));
+    add({key:"keysig", pri:88, area:"Reading", title:"You're missing the key signature",
+      seen:`${forgot.length} times you played the natural note instead of ${names.join(", ")}.`,
+      fix:"Before you start, name the sharps or flats at the start of the line out loud. They apply to every note with that letter, in every octave, even with no ♯ or ♭ printed next to the note.",
+      action:null});
+  }
+
+  /* 7. other wrong notes: finger pattern not settled */
+  const wrongOther = wrong.filter(x => !forgot.includes(x));
+  if(valid.length >= 8 && wrongOther.length / valid.length >= 0.15){
+    add({key:"wrong", pri:66, area:"Reading", title:"Many notes start on the wrong pitch",
+      seen:`${wrongOther.length} of ${valid.length} notes ${opts.single ? "" : "recently "}started a half step or more away from the target.`,
+      fix:"The finger pattern for this key isn't settled yet. Slow down: say the note name and finger number before each note, and practise the pattern in Letter mode before reading it from the score.",
+      action:{label:"Scale with letters", set:{game:"scale", show:"letter", feedback:"live"}}});
+  }
+
+  /* 8. leading tone and accidentals: expressive intonation */
+  const lead = good.filter(x => x.d === 6 && (x.s.ktype === "major" || x.s.ktype === "harmonic"));
+  if(lead.length >= 3 && median(vs(lead)) <= -10){
+    add({key:"lead", pri:55, area:"Ear", title:"Your leading tone sits low",
+      seen:`The 7th note of the scale (${uniq(lead.map(x => baseName(x.n))).join(", ")}) averaged ${fmtC(median(vs(lead)))}.`,
+      fix:"The leading tone wants to lean up into the home note. Place it a touch higher, close to the note above. Sing the last three notes of the scale slowly, then play them and match your voice.",
+      action:{label:"Drill these notes", set:FOCUS_SET(focusNotes(lead, -1))}});
+  }
+  const sharps = good.filter(x => x.a === 1 && x.d !== 6), flats = good.filter(x => x.a === -1);
+  if(sharps.length >= 4 && median(vs(sharps)) <= -10){
+    add({key:"sharps", pri:50, area:"Ear", title:"Your sharps sit low",
+      seen:`Notes with a ♯ (${uniq(sharps.map(x => baseName(x.n))).join(", ")}) averaged ${fmtC(median(vs(sharps)))}, pulled back toward the natural note.`,
+      fix:"A sharp raises the note a full half step, and in melodies sharps sound best leaning slightly high. Think “up” for every ♯ and place the finger right next to the note above.",
+      action:{label:"Drill these notes", set:FOCUS_SET(focusNotes(sharps, -1))}});
+  }
+  if(flats.length >= 4 && median(vs(flats)) >= 10){
+    add({key:"flats", pri:50, area:"Ear", title:"Your flats sit high",
+      seen:`Notes with a ♭ (${uniq(flats.map(x => baseName(x.n))).join(", ")}) averaged ${fmtC(median(vs(flats)))}, pulled up toward the natural note.`,
+      fix:"A flat lowers the note a full half step, and in melodies flats sound best leaning slightly low. Think “down” for every ♭ and place the finger right next to the note below.",
+      action:{label:"Drill these notes", set:FOCUS_SET(focusNotes(flats, 1))}});
+  }
+
+  /* 9. stopping short or overshooting between notes */
+  const moves = good.filter(x => x.prevM != null && x.prevM !== x.m && x.land != null && Math.abs(x.land) < 60);
+  if(moves.length >= 8){
+    const md = median(moves.map(x => x.land * Math.sign(x.m - x.prevM)));
+    if(Math.abs(md) >= 8){
+      const up = moves.filter(x => x.m > x.prevM), dn = moves.filter(x => x.m < x.prevM), short = md < 0;
+      const parts = [];
+      if(up.length >= 3) parts.push(`going up your first sound was ${fmtC(median(up.map(x => x.land)))}`);
+      if(dn.length >= 3) parts.push(`going down ${fmtC(median(dn.map(x => x.land)))}`);
+      add({key:"reach", pri:60 + Math.min(10, Math.abs(md)/2), area:"Left hand",
+        title: short ? "You stop short when moving to the next note" : "You overshoot when moving to the next note",
+        seen:(parts.length ? parts.join(", ").replace(/^./, c => c.toUpperCase()) + ". " : "") + `Your finger travels ${short ? "slightly less than" : "slightly more than"} the full distance.`,
+        fix: short
+          ? "Hear the next note in your head (or hum it) before you move, then let the finger travel all the way in one motion. One deliberate placement beats a quick one followed by sliding."
+          : "Move more calmly and aim at the note, not past it. Keep the fingers close to the string so each motion stays small.",
+        action:{label:"Scale, result after each note", set:{game:"scale", feedback:"note"}}});
+    }
+  }
+  const leaps = moves.filter(x => Math.abs(x.m - x.prevM) >= 5);
+  if(leaps.length >= 4 && median(leaps.map(x => Math.abs(x.land))) >= 20){
+    add({key:"leaps", pri:52, area:"Ear", title:"Big jumps land far off",
+      seen:`After jumps of a fourth or more, your first sound was about ${Math.round(median(leaps.map(x => Math.abs(x.land))))}¢ off.`,
+      fix:"Hear the interval before you play it: sing both notes, then place the finger once. Use what you know as a guide: an open string, or a finger you already trust in the same position.",
+      action:{label:"Melodies with leaps", set:{game:"melody", diff:"leaps", feedback:"note"}}});
+  }
+
+  /* 10. higher positions: shifting */
+  const ups = good.filter(x => x.fg.f === "up");
+  if(ups.length >= 4 && Math.abs(median(vs(ups))) >= 12){
+    const md = median(vs(ups));
+    add({key:"shift", pri:62, area:"Left hand", title:`Notes in higher positions land ${fs(md)}`,
+      seen:`Notes above first position averaged ${fmtC(md)} over ${ups.length} notes.`,
+      fix:`${md < 0 ? "You stop short in shifts." : "Your shifts go too far."} Shift with the whole arm, with the finger staying lightly on the string while it slides, and use landmarks: in 4th position the side of your hand touches the curve where the neck meets the body. Check the arrival note against an open string or the tuner.`,
+      action:null});
+  }
+
+  /* 11. searching for notes with live help */
+  const liveFree = valid.filter(x => x.live && x.s.mode === "free" && x.land != null);
+  let searching = false;
+  if(liveFree.length >= 8){
+    const far = liveFree.filter(x => Math.abs(x.land) > 25).length / liveFree.length;
+    if(far >= 0.4){
+      searching = true;
+      add({key:"search", pri:58, area:"Practice", title:"You find notes by sliding to them",
+        seen:`Your first sound was more than 25¢ off on ${Math.round(far*100)}% of notes, then you slid into tune. The dial rescues you, so the hand doesn't have to remember the spot.`,
+        fix:"Switch Feedback to After each note for part of every session. Without live help the hand has to recall where the note is. That feels harder, and it is exactly what makes the placement stick.",
+        action:{label:"Use delayed feedback", set:{feedback:"note"}}});
+    }
+  }
+
+  /* 12. ear: blind results */
+  const bl = good.filter(x => x.blind && x.fin != null);
+  if(bl.length >= 8){
+    const mFin = median(bl.map(x => Math.abs(x.fin)));
+    const wl = bl.filter(x => x.land != null);
+    const mLand = wl.length >= 6 ? median(wl.map(x => Math.abs(x.land))) : null;
+    if(mFin >= 15){
+      add({key:"ear", pri:58, area:"Ear", title:"Without the dial, notes settle off pitch",
+        seen:`With feedback hidden, notes settled a median of ${Math.round(mFin)}¢ from the target${mLand != null && mLand - mFin < 4 ? ", and you rarely adjusted after the first sound" : ""}.`,
+        fix:"Your ear doesn't catch these offsets yet, which is normal early on. Sing each note before playing it, use ringing notes (4th fingers make an open string vibrate) as checkpoints, and alternate one round in Live mode with one blind round.",
+        action:{label:"Play the Ear game", set:{game:"ear", feedback:"live"}}});
+    } else if(mLand != null && mLand - mFin >= 8){
+      praise({key:"ear-good", pri:40, title:"Your ear corrects well",
+        seen:`Your first sounds were about ${Math.round(mLand)}¢ off, and you adjusted to ${Math.round(mFin)}¢ before settling, without any help from the dial.`,
+        fix:"Now teach the hand to land there first. Keep using delayed feedback and aim for fewer corrections."});
+    } else if(mFin < 10 && !issues.some(i => i.area === "Left hand")){
+      praise({key:"blind-good", pri:42, title:"Accurate even without the dial",
+        seen:`With feedback hidden, notes settled a median of ${Math.round(mFin)}¢ from the target.`,
+        fix:"Your hand and ear are working together. Tighten the tolerance or move on to melodies and new keys."});
+    }
+  }
+
+  /* 13. pitch wavers on held notes */
+  const sds = items.filter(x => x.sd != null && x.s.mode === "free" && x.fg && x.fg.f !== "0").map(x => x.sd);
+  if(sds.length >= 8 && median(sds) >= 6){
+    add({key:"waver", pri:46, area:"Left hand", title:"Pitch wavers while you hold notes",
+      seen:`While holding fingered notes, your pitch moved about ±${Math.round(median(sds))}¢.`,
+      fix:"Keep the finger firmly on the string but the thumb soft: you should be able to wiggle it under the neck. A squeezing thumb makes the hand shake. Keep the bow speed even too, because a slowing bow lets the pitch sag.",
+      action:{label:"Long tone on E (D string)", set:{game:"long", longNote:52, longFb:"live"}}});
+  }
+
+  /* 14. long tones: the bow arm */
+  const longs = sessions.filter(s => sessMode(s) === "long").slice(-5);
+  const Lm = k => { const a = longs.map(s => s[k]).filter(v => v != null); return a.length ? median(a) : null; };
+  const lsd = Lm("sd"), ldrift = Lm("drift"), ldrops = Lm("drops"), lvr = Lm("vratio"), lvcv = Lm("vcv"), lclar = Lm("clar"), lharm = Lm("harm"), lmean = Lm("mean");
+  const longOpen = longs.length && longs.every(s => s.notes && OPEN.includes(s.notes[0].m));
+  if(longs.length){
+    if(lsd != null && lsd >= 6){
+      add({key:"long-sd", pri:50, area: longOpen ? "Bow" : "Left hand", title:"Long tones waver",
+        seen:`Over your recent long tones, the pitch moved about ±${lsd.toFixed(0)}¢.`,
+        fix: longOpen
+          ? "On an open string the left hand isn't involved, so the waver comes from the bow: uneven speed or weight. Divide the bow evenly (count four slow beats and arrive at the middle on beat two) and keep the arm weight steady."
+          : "Check that the thumb isn't squeezing and the finger stays firmly down, then keep the bow speed even from start to finish.",
+        action:{label:"Long tone, open A", set:{game:"long", longNote:57, longFb:"live"}}});
+    }
+    if(ldrift != null && Math.abs(ldrift) >= 8){
+      const sink = ldrift < 0;
+      add({key:"long-drift", pri:48, area: longOpen ? "Bow" : "Left hand", title:`The pitch ${sink ? "sinks" : "rises"} during long tones`,
+        seen:`From start to end of a long tone your pitch moved about ${fmtC(ldrift)}.`,
+        fix: longOpen
+          ? (sink ? "On an open string a sinking pitch usually means growing bow pressure, because heavy weight flattens the tone. Keep the weight constant and let bow speed carry the sound." : "On an open string a rising pitch usually means the bow weight eases off as you go. Keep the arm weight constant to the end.")
+          : (sink ? "Your finger relaxes or the hand slides back toward the scroll as the note goes on. Keep the finger pressure constant to the very end of the bow." : "Your finger creeps toward the bridge or presses harder as you go. Keep the hand still and the pressure constant."),
+        action:null});
+    }
+    if(ldrops != null && ldrops >= 1){
+      add({key:"long-drops", pri:54, area:"Bow", title:"The sound breaks during long tones",
+        seen:`Your recent long tones had about ${Math.round(ldrops)} break${Math.round(ldrops) === 1 ? "" : "s"} each.`,
+        fix:"The bow loses its grip on the string, usually at a bow change, near the tip, or when it drifts toward the fingerboard. Keep the arm weight in the string through the change, and let the fingers soften like a hinge as you turn around.",
+        action:{label:"Long tone, open D", set:{game:"long", longNote:50, longFb:"live", longDur:8}}});
+    }
+    if(lvr != null && lvr < 0.72){
+      add({key:"long-fade", pri:56, area:"Bow", title:"Your sound fades on long notes",
+        seen:`The end of your long tones was about ${Math.round((1 - lvr)*100)}% quieter than the start.`,
+        fix:"Toward the tip the bow has less natural weight. As you approach it on a down-bow, lean into the string through the index finger and forearm. On an up-bow, ease off as you near the frog. A sound that stays even from start to finish is what makes a tone sing.",
+        action:{label:"Long tone, open D", set:{game:"long", longNote:50, longFb:"live", longDur:12}}});
+    } else if(lvr != null && lvr > 1.45){
+      add({key:"long-swell", pri:40, area:"Bow", title:"Your sound swells on long notes",
+        seen:`The end of your long tones was about ${Math.round((lvr - 1)*100)}% louder than the start.`,
+        fix:"You add weight or speed as you go. That's beautiful as a deliberate crescendo, but as a default keep the sound even and add shape on purpose.",
+        action:null});
+    } else if(lvcv != null && lvcv >= 0.3){
+      add({key:"long-uneven", pri:44, area:"Bow", title:"Your volume goes up and down on long notes",
+        seen:`Volume varied by about ${Math.round(lvcv*100)}% within a long tone.`,
+        fix:"Your bow speed changes during the stroke. Use the same amount of bow for each beat: imagine a mark at the middle of the bow and arrive there exactly halfway through the note.",
+        action:null});
+    }
+    if(lsd != null && lsd < 4 && (ldrops == null || ldrops < 0.5) && (lvr == null || lvr >= 0.72)){
+      praise({key:"long-good", pri:38, title:"Steady, unbroken long tones",
+        seen:`Pitch held within about ±${lsd.toFixed(0)}¢ with no breaks.`,
+        fix:"Your bow arm is giving you a solid base. Try the same on fingered notes and on the C string, where it's harder."});
+    }
+  }
+
+  /* 15. tone quality from the signal: noise, surface sound, slow attacks */
+  const clarAll = lclar != null ? lclar : (() => { const a = sessions.map(s => s.clar).filter(v => v != null); return a.length ? median(a) : null; })();
+  if(clarAll != null && clarAll < 0.86){
+    const crushed = lmean != null && lmean <= -5 && longOpen;
+    const surface = lharm != null && lharm >= 0.03;
+    add({key:"tone", pri:52, area:"Bow", title:"Your tone has some noise in it",
+      seen:`Your sound is less purely pitched than a clear cello tone${crushed ? ", and the pitch sits flat" : surface ? ", and the tuner sometimes hears the octave above" : ""}.`,
+      fix:"A singing tone balances bow speed, weight and contact point. Slow and heavy near the bridge crunches; fast and light near the fingerboard sounds airy or whistles. Start halfway between bridge and fingerboard with the bow parallel to the bridge, and let the arm's weight sink into the string." +
+        (crushed ? " The flat pitch points to pressing: lighten the weight or use more bow speed." : surface ? " Hearing the octave above points to a surface sound: add weight, or move the bow closer to the bridge." : ""),
+      action:{label:"Long tone, open D", set:{game:"long", longNote:50, longFb:"live"}}});
+  }
+  const atts = items.map(x => x.att).filter(v => v != null).concat(longs.map(s => s.att).filter(v => v != null));
+  if(atts.length >= 5 && median(atts) >= 220){
+    add({key:"attack", pri:47, area:"Bow", title:"Notes take a moment to speak",
+      seen:`It took about ${Math.round(median(atts))} ms from your first sound until the note sounded clearly.`,
+      fix:"The bow starts moving before it grips the string, which gives a scratchy or breathy start. Set the bow on the string with a little weight, feel it catch, and only then move. Start with slightly more bow speed than you think you need.",
+      action:null});
+  }
+
+  /* 16. how you practise */
+  if(!opts.single){
+    const recent = sessions.filter(s => Date.now() - new Date(s.date).getTime() < 7*864e5);
+    const anyBlind = recent.some(s => s.feedback === "note" || s.feedback === "end");
+    if(recent.length >= 5 && !anyBlind && !searching){
+      add({key:"try-blind", pri:40, area:"Practice", title:"Try practising without live feedback",
+        seen:`All ${recent.length} sessions this week showed you the answer while you played.`,
+        fix:"Live feedback makes notes easier in the moment, but the hand starts to lean on it. Delayed feedback feels harder and sticks better. Do one round per session with Feedback set to After each note.",
+        action:{label:"Use delayed feedback", set:{feedback:"note"}}});
+    }
+    const labels = uniq(recent.map(s => s.label));
+    if(recent.length >= 6 && labels.length === 1){
+      add({key:"interleave", pri:35, area:"Practice", title:"You always play the same exercise",
+        seen:`All ${recent.length} sessions this week were “${labels[0]}”.`,
+        fix:"Mixing exercises (a scale, then random notes, then a melody) feels harder but builds skill that carries over to real pieces. Change at least one thing each round: key, game or display.",
+        action:{label:"Random notes, smart", set:{game:"random", smart:true, focus:[]}}});
+    }
+    const lf = liveFree.filter(x => Math.abs(x.land) < 60);
+    const tols = recent.map(s => s.tol).filter(v => v != null);
+    if(lf.length >= 15 && median(lf.map(x => Math.abs(x.land))) <= 8 && tols.length && median(tols) >= 15){
+      add({key:"tighter", pri:38, area:"Practice", title:"You're ready for a tighter tolerance",
+        seen:`Your first sounds are already within about ${Math.round(median(lf.map(x => Math.abs(x.land))))}¢, but you practise with ±${median(tols)}¢.`,
+        fix:"Practice works best when it's just beyond what's comfortable. Tighten the tolerance to 10¢.",
+        action:{label:"Set 10¢ tolerance", set:{tol:10}}});
+    }
+    const dayCount = Object.keys(data.days).filter(k => Date.now() - new Date(k + "T12:00").getTime() < 7*864e5).length;
+    if(recent.length >= 2 && dayCount > 0 && dayCount <= 2){
+      add({key:"spacing", pri:30, area:"Practice", title:"Shorter, more often",
+        seen:`You practised on ${dayCount} day${dayCount === 1 ? "" : "s"} this week.`,
+        fix:"Four 15-minute sessions spread across the week beat one long one. Motor skills consolidate between sessions, especially during sleep.",
+        action:null});
+    }
+  }
+
+  /* praise a clean left hand */
+  if(medFing != null && Math.abs(medFing) < 5 && !frameIssue && !issues.some(i => i.key.startsWith("finger-"))){
+    praise({key:"frame-good", pri:36, title:"Your hand frame is well placed",
+      seen:`Fingered notes landed ${fmtC(medFing)} on average over ${fingered.length} notes.`,
+      fix:"Keep checking it with the ringing 4th-finger notes, especially after a break."});
+  }
+  issues.sort((a, b) => b.pri - a.pri);
+  strengths.sort((a, b) => b.pri - a.pri);
+  return {issues, strengths, n: valid.length};
+}
+
+/* ---------- teacher UI ---------- */
+function applyAction(a){
+  if(!a) return;
+  if(a.view === "tuner"){ showView("tuner"); return; }
+  Object.assign(S(), a.set || {});
+  saveData();
+  showView("play"); renderSetup();
+  document.querySelector("main").scrollTo({top:0, behavior:"smooth"});
+  toast("Settings ready – tap Start");
+}
+function renderInsights(box, res, max, emptyText){
+  box.innerHTML = "";
+  const list = res.issues.slice(0, max).concat(res.strengths.slice(0, 1));
+  if(!list.length){ box.innerHTML = `<p class="muted" style="font-size:.88rem">${emptyText}</p>`; return; }
+  list.forEach(i => {
+    const el = document.createElement("div");
+    el.className = "ins" + (i.good ? " good" : "");
+    el.innerHTML = `<span class="area">${i.area}</span><h4>${i.title}</h4>
+      <p><b>What I heard:</b> ${i.seen}</p><p><b>${i.good ? "Next" : "Try this"}:</b> ${i.fix}</p>${i.drill ? `<p><b>Drill:</b> ${i.drill}</p>` : ""}`;
+    if(i.action){
+      const b = document.createElement("button"); b.className = "btn small"; b.type = "button";
+      b.textContent = i.action.label; b.onclick = () => applyAction(i.action);
+      el.appendChild(b);
+    }
+    box.appendChild(el);
+  });
+}
+
+/* fingerboard map: where each first-position spot lands on average */
+function renderFingerboard(box, sessions){
+  box.innerHTML = "";
+  const cells = {}, byF = {};
+  collectItems(sessions).forEach(x => {
+    if(x.v == null || Math.abs(x.v) >= 60) return;
+    const fg = fingering(x.m); if(fg.s == null) return;
+    (cells[fg.s + "_" + fg.off] = cells[fg.s + "_" + fg.off] || []).push(x.v);
+    if(fg.f !== "0") (byF[fg.f] = byF[fg.f] || []).push(x.v);
+  });
+  if(!Object.keys(cells).length) return false;
+  const W = Math.max(290, Math.min(440, Math.floor(box.clientWidth) || 340));
+  const offs = [0,1,2,3,4,5], rowLbl = ["Open","Low 1","1","2","3","4"];
+  const L = 52, colW = (W - L - 6)/4, top = 28, rowH = 44, H = top + offs.length*rowH + 4;
+  const svg = sv("svg", {viewBox:`0 0 ${W} ${H}`, role:"img", "aria-label":"Average intonation for each finger on each string"}, box);
+  sv("rect", {class:"fb-board", x:L, y:top + rowH - 4, width:W - L - 6, height:H - top - rowH, rx:10}, svg);
+  sv("line", {class:"fb-nut", x1:L, x2:W - 6, y1:top + rowH - 4, y2:top + rowH - 4}, svg);
+  OPEN.forEach((s, i) => {
+    const x = L + colW*(i + .5);
+    sv("line", {class:"fb-str", x1:x, x2:x, y1:top + 6, y2:H - 2, "stroke-width":[2.4, 1.9, 1.5, 1.1][i]}, svg);
+    sv("text", {class:"fb-sl", x, y:16, "text-anchor":"middle"}, svg, STRING_NAMES[s]);
+  });
+  offs.forEach((off, r) => {
+    const y = top + r*rowH + rowH/2;
+    sv("text", {class:"fb-rl", x:L - 10, y:y + 4, "text-anchor":"end"}, svg, rowLbl[r]);
+    OPEN.forEach((s, i) => {
+      const x = L + colW*(i + .5), a = cells[s + "_" + off], name = pcName(s + off);
+      if(!a){
+        sv("circle", {class:"fb-empty", cx:x, cy:y, r:15}, svg);
+        sv("text", {class:"fb-nn faint", x, y:y + 4, "text-anchor":"middle"}, svg, name);
+        return;
+      }
+      const md = median(a), ab = Math.abs(md);
+      const cls = ab < 5 ? "in" : (md < 0 ? "flat" : "sharp") + (ab < 10 ? "1" : ab < 20 ? "2" : "3");
+      const g = sv("g", {}, svg);
+      sv("title", {}, g, `${name}: ${fmtC(md)} average over ${a.length} note${a.length === 1 ? "" : "s"}`);
+      sv("circle", {class:"fb-c " + cls, cx:x, cy:y, r:17}, g);
+      sv("text", {class:"fb-nn", x, y:y - 3, "text-anchor":"middle"}, g, name);
+      sv("text", {class:"fb-v", x, y:y + 9, "text-anchor":"middle"}, g, ab < 0.5 ? "0" : fmtC(md));
+    });
+  });
+  const fl = ["1","2","3","4"].filter(k => byF[k] && byF[k].length >= 2);
+  const sum = document.createElement("p"); sum.className = "muted fb-sum";
+  sum.innerHTML = fl.length ? "By finger: " + fl.map(k => `<b>${k}</b> <span class="mono">${fmtC(median(byF[k]))}</span>`).join(" · ") : "";
+  box.appendChild(sum);
+  return true;
+}
+
 /* ---------- storage ---------- */
 const STORE = "cellopitchquest.v1";
 const DEFAULTS = {a4:440, gate:0.010, game:"scale", type:"major", tonic:"C", oct:1, start:"low", dir:"updown", tol:10, hold:500,
   show:"score", clef:"auto", pace:"free", bpm:60, bpn:2, count:20, smart:true,
-  bars:4, meter:4, diff:"mixed", rhythm:"simple", melStrings:[36,43,50,57], melPos:5, melSeed:20261029, longNote:57, longDur:8};
+  bars:4, meter:4, diff:"mixed", rhythm:"simple", melStrings:[36,43,50,57], melPos:5, melSeed:20261029, longNote:57, longDur:8,
+  feedback:"live", longFb:"live", focus:[]};
 let data = loadData();
 function loadData(){
   let d = null;
@@ -699,6 +1231,8 @@ const median = arr => { const s = arr.slice().sort((a,b)=>a-b), n=s.length; retu
 const mean = arr => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : null;
 const centsOff = (f, ref) => 1200 * Math.log2(f/ref);
 const sessGame = s => s.game || "scale", sessMode = s => s.mode || "free";
+const isBlind = s => s.feedback === "note" || s.feedback === "end";
+const r1 = v => v == null || isNaN(v) ? null : Math.round(v*10)/10;
 const GAME_NAMES = {scale:"Scale", random:"Random", ear:"Ear", melody:"Melody", long:"Long tone"};
 
 /* ---------- pitch detection (YIN) ---------- */
@@ -722,6 +1256,7 @@ function yin(buf, sr){
 /* ---------- audio ---------- */
 const audio = {ctx:null, an:null, buf:null, stream:null, on:false};
 let wake = null, hist = [], lastProc = 0, lastSound = 0, practiceAcc = 0, lastSaveT = 0, toneUntil = 0;
+let wasLoud = false, lastLoud = 0, onsetT = 0, attPending = false;
 function ensureCtx(){
   if(!audio.ctx) audio.ctx = new (window.AudioContext || window.webkitAudioContext)();
   if(audio.ctx.state === "suspended") audio.ctx.resume();
@@ -775,11 +1310,18 @@ function loop(t){
   if(game && game.metro && isClick(t)) return; // ignore our own metronome click
   const b = audio.buf; audio.an.getFloatTimeDomainData(b);
   let rms = 0; for(let i=0;i<b.length;i++) rms += b[i]*b[i]; rms = Math.sqrt(rms/b.length);
-  let f = null;
-  if(rms > S().gate && t > toneUntil){
-    const r = yin(b, audio.ctx.sampleRate);
-    if(r && r.clarity > 0.8 && r.freq > 55 && r.freq < 1100) f = r.freq;
+  let f = null, clar = null, att = null;
+  const loud = rms > S().gate;
+  if(t <= toneUntil){ attPending = false; wasLoud = false; }
+  else {
+    if(loud && !wasLoud){ onsetT = t; attPending = true; }
+    if(loud){ wasLoud = true; lastLoud = t; } else if(t - lastLoud > 150) wasLoud = false;
   }
+  if(loud && t > toneUntil){
+    const r = yin(b, audio.ctx.sampleRate);
+    if(r && r.clarity > 0.8 && r.freq > 55 && r.freq < 1100){ f = r.freq; clar = r.clarity; }
+  }
+  if(f && attPending){ att = t - onsetT; attPending = false; if(att > 1500) att = null; }
   if(f){
     if(hist.length && Math.abs(centsOff(f, hist[hist.length-1])) > 300) hist = [];
     hist.push(f); if(hist.length > 3) hist.shift();
@@ -787,7 +1329,7 @@ function loop(t){
   } else if(t - lastSound > 120) hist = [];
   else if(hist.length) f = hist[hist.length-1]; // bridge tiny gaps (bow changes)
   if(t - lastSaveT > 10000) flushPractice();
-  onPitch(f, t);
+  onPitch(f, t, {rms, clar, att});
 }
 function dayKey(d){ d = d || new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 function flushPractice(){
@@ -986,9 +1528,22 @@ function renderStringsSeg(){
 function setupNotes(st){
   if(st.game === "melody") return genMelody(st, st.melSeed) || [];
   if(st.game === "long"){ const m = st.longNote, n = spellPlain(m); return [Object.assign(spellNote(m, LET.indexOf(n.label[0])), {vis:4})]; }
-  if(st.game === "random" || st.game === "ear") return buildScale(Object.assign({}, st, {dir:"up"}));
+  if(st.game === "random" || st.game === "ear") return st.focus && st.focus.length ? focusPool(st) : buildScale(Object.assign({}, st, {dir:"up"}));
   return buildScale(st);
 }
+/* focus notes from the teacher, spelled in the current key where possible */
+function focusPool(st){
+  const ref = st.type === "open" ? [] : buildScale(Object.assign({}, st, {oct:2, start:"low", dir:"up"}));
+  return uniq(st.focus).sort((a,b) => a-b).map(m => {
+    const k = ref.find(n => ((n.midi - m) % 12 + 12) % 12 === 0);
+    return k ? Object.assign(spellNote(m, k.L), {deg:k.deg}) : spellNote(m, LET.indexOf(spellPlain(m).label[0]));
+  });
+}
+const FB_HINT = {
+  live:"The dial and cents show while you play.",
+  note:"No hints while you play. Settle on a pitch and hold it; the result appears right after each note.",
+  end:"No hints while you play. Settle on a pitch and hold it; you see how far off each note was at the end."
+};
 function renderSetup(){
   $("setup").hidden = false; $("play").hidden = true; $("done").hidden = true;
   const st = S(), gm = st.game;
@@ -1017,6 +1572,11 @@ function renderSetup(){
   seg("segTol", [[5,"5¢"],[10,"10¢"],[15,"15¢"],[25,"25¢"]], "tol");
   seg("segHold", [[300,"0.3s"],[500,"0.5s"],[1000,"1s"]], "hold");
   seg("segLongDur", [[5,"5s"],[8,"8s"],[12,"12s"]], "longDur");
+  const fbKey = gm === "long" ? "longFb" : "feedback";
+  if(gm === "long" && st.longFb === "note") st.longFb = "end";
+  seg("segFb", gm === "long" ? [["live","Live"],["end","At the end"]] : [["live","Live"],["note","After each note"],["end","At the end"]], fbKey, renderSetup);
+  $("fbHint").textContent = gm === "long" && st.longFb === "end" ? "No dial while you hold. The analysis comes at the end." : FB_HINT[st[fbKey]] || FB_HINT.live;
+  $("holdLbl").textContent = st.feedback === "live" ? "Hold to count" : "Hold steady for";
   const metro = st.pace === "metro" && (gm === "scale" || gm === "melody");
   const usesScore = gm === "melody" || gm === "long" || ((gm === "scale" || gm === "random") && st.show === "score");
   document.querySelectorAll("[data-g]").forEach(f => {
@@ -1027,6 +1587,9 @@ function renderSetup(){
     if(f.hasAttribute("data-needscore") && !usesScore) show = false;
     f.hidden = !show;
   });
+  const foc = (gm === "random" || gm === "ear") && st.focus && st.focus.length;
+  $("focusField").hidden = !foc;
+  if(foc) $("focusChips").innerHTML = focusPool(st).map(n => `<span class="chip cur">${n.label}<small>${n.oct}</small></span>`).join("");
   // preview
   const notes = setupNotes(st);
   const pc = $("preview"), ps = $("prevScore");
@@ -1050,16 +1613,19 @@ function renderSetup(){
   }
   renderLastCard();
 }
+$("clearFocus").onclick = () => { S().focus = []; saveData(); renderSetup(); };
 $("newMel").onclick = () => { S().melSeed = Math.floor(Math.random()*1e9); saveData(); renderSetup(); };
 $("listenMel").onclick = () => { const n = genMelody(S(), S().melSeed); if(n) playSequence(n, S().pace === "metro" ? S().bpm : 72); };
 function currentLabel(st){
   const gm = st.game, metro = st.pace === "metro" && (gm === "scale" || gm === "melody");
   let l;
   if(gm === "scale") l = scaleLabel(st);
-  else if(gm === "random" || gm === "ear") l = (gm==="ear"?"Ear · ":"Random · ") + (st.type==="open" ? "Open strings" : `${keyLabel(st)} · ${st.oct} oct${st.start==="high"?" · high":""}`) + (st.smart ? " · smart" : "");
+  else if(gm === "random" || gm === "ear") l = (gm==="ear"?"Ear · ":"Random · ") + (st.focus && st.focus.length ? "Focus " + focusPool(st).map(n => n.name).join(" ") : st.type==="open" ? "Open strings" : `${keyLabel(st)} · ${st.oct} oct${st.start==="high"?" · high":""}`) + (st.smart ? " · smart" : "");
   else if(gm === "melody") l = melodyLabel(st);
   else { const n = spellPlain(st.longNote); l = `Long tone · ${n.label}${n.oct} · ${st.longDur}s`; }
-  return metro ? `${l} · ♩=${st.bpm}` : l;
+  if(metro) l += ` · ♩=${st.bpm}`;
+  const fb = gm === "long" ? (st.longFb === "live" ? "live" : "end") : st.feedback;
+  return l + (fb === "note" ? " · delayed" : fb === "end" ? " · blind" : "");
 }
 function renderLastCard(){
   const st = S(), lbl = currentLabel(st), gm = st.game;
@@ -1069,7 +1635,7 @@ function renderLastCard(){
   const last = prev[prev.length-1], mode = sessMode(last);
   let a, b, c;
   if(mode === "long"){ a = [last.sd.toFixed(1)+"¢","last wobble"]; b = [Math.min(...prev.map(s=>s.sd)).toFixed(1)+"¢","steadiest"]; }
-  else if(mode === "metro"){ a = [Math.round(last.inPct)+"%","last in tune"]; b = [Math.round(Math.max(...prev.map(s=>s.inPct)))+"%","best"]; }
+  else if(mode === "metro" || isBlind(last)){ a = [Math.round(last.inPct)+"%","last in tune"]; b = [Math.round(Math.max(...prev.map(s=>s.inPct||0)))+"%","best"]; }
   else { a = [(last.med/1000).toFixed(1)+"s","last median"]; b = [(Math.min(...prev.map(s => s.med))/1000).toFixed(1)+"s","best median"]; }
   c = [prev.length, "sessions"];
   box.hidden = false;
@@ -1083,7 +1649,7 @@ let game = null;
 $("startGame").onclick = async () => { if(await startMic()) startGame(); };
 function smartWeights(pool){
   const by = {};
-  data.sessions.forEach(s => { if(sessMode(s) !== "free" || sessGame(s) === "long") return; s.notes.forEach(r => { if(!r.skip && r.t != null) (by[r.m] = by[r.m] || []).push(r.t); }); });
+  data.sessions.forEach(s => { if(sessMode(s) !== "free" || sessGame(s) === "long" || isBlind(s)) return; s.notes.forEach(r => { if(!r.skip && r.t != null) (by[r.m] = by[r.m] || []).push(r.t); }); });
   const meds = {}; Object.keys(by).forEach(k => meds[k] = median(by[k].slice(-12)));
   const overall = median(Object.values(meds)) || 2000;
   return pool.map(n => meds[n.midi] ? Math.max(0.6, Math.min(3, meds[n.midi]/overall)) : 1.6);
@@ -1099,33 +1665,41 @@ function pickRandom(){
 function startGame(){
   const st = JSON.parse(JSON.stringify(S())), kind = st.game;
   const mode = kind === "long" ? "long" : ((kind === "scale" || kind === "melody") && st.pace === "metro") ? "metro" : "free";
-  game = {kind, mode, st, tol:st.tol, hold:st.hold, results:[], i:0, notes:[], t0:performance.now(), started:Date.now(),
-          trace:{p:[], m:[]}, lastTr:0, cur:null, pausedUntil:0, label: currentLabel(st), fifths:keyFifths(st), score:null};
+  let fb = kind === "long" ? (st.longFb === "live" ? "live" : "end") : (st.feedback || "live");
+  game = {kind, mode, st, fb, tol:st.tol, hold:st.hold, commitMs: Math.max(400, st.hold), results:[], i:0, notes:[], t0:performance.now(), started:Date.now(),
+          trace:{p:[], m:[]}, lastTr:0, cur:null, pausedUntil:0, label: currentLabel(st), fifths:keyFifths(st), score:null, clars:[]};
   if(kind === "scale"){ const v = mode === "metro" ? st.bpn : 1; game.notes = buildScale(st).map(n => Object.assign({}, n, {vis:v, dur:v})); }
   else if(kind === "random" || kind === "ear"){
-    const seen = new Set(); game.pool = buildScale(Object.assign({}, st, {dir:"up"})).filter(n => !seen.has(n.midi) && seen.add(n.midi));
+    const seen = new Set(); game.pool = setupNotes(st).filter(n => !seen.has(n.midi) && seen.add(n.midi));
     game.weights = smartWeights(game.pool);
   }
   else if(kind === "melody"){ game.notes = genMelody(st, st.melSeed); game.seed = st.melSeed; if(!game.notes){ game = null; return; } }
   else { game.notes = setupNotes(st); }
   game.total = (kind === "random" || kind === "ear") ? st.count : game.notes.length;
   game.showScore = kind === "melody" || kind === "long" || ((kind === "scale" || kind === "random") && st.show === "score");
+  const live = fb === "live";
   // screen
   $("setup").hidden = true; $("play").hidden = false; $("done").hidden = true;
   $("gLabel").textContent = game.label;
-  g2.setTol(game.tol);
+  g2.setTol(game.tol); g2.set(null);
   const letter = !game.showScore || kind === "long";
   $("targetLetter").hidden = !letter && kind !== "ear";
   if(kind === "ear") $("targetLetter").hidden = false;
   $("scoreBox").hidden = !game.showScore; $("scoreBox").innerHTML = "";
   $("metroRow").hidden = mode !== "metro";
   $("holdWrap").hidden = mode !== "free";
-  $("liveTrace").hidden = mode !== "long"; $("liveTrace").innerHTML = "";
+  $("holdWrap").classList.toggle("neutral", !live);
+  $("g2").toggleAttribute("hidden", !!(!live));
+  $("statT").hidden = !live && mode !== "long";
+  $("statC").hidden = !live; $("statH").hidden = !live;
+  $("liveTrace").hidden = mode !== "long" || !live; $("liveTrace").innerHTML = "";
   $("skipBtn").hidden = mode !== "free";
   $("hearBtn").hidden = mode === "metro";
   $("hearBtn").textContent = kind === "melody" ? "Listen" : kind === "ear" ? "Hear again" : "Hear note";
   $("progressChips").hidden = !(mode === "free" && kind !== "melody" && !(kind === "scale" && game.showScore));
   $("gTimeLbl").textContent = mode === "metro" ? "in tune" : mode === "long" ? "seconds left" : "seconds";
+  $("fbBadge").hidden = live;
+  $("fbBadge").textContent = fb === "note" ? "Result after each note" : "Results at the end";
   if(game.showScore && (kind === "scale" || kind === "melody"))
     game.score = renderScore($("scoreBox"), game.notes, {clef:st.clef, fifths:game.fifths, bar: kind === "melody" ? st.meter : (mode === "metro" ? 4 : 0), time: kind === "melody" ? [st.meter,4] : null, final: kind === "melody"});
   if(kind === "long") renderScore($("scoreBox"), game.notes, {clef:st.clef, fifths:0, single:true}).setCur(0);
@@ -1145,20 +1719,30 @@ function showTarget(n){
   if(game.kind === "ear"){ $("gNote").innerHTML = "?"; return; }
   $("gNote").innerHTML = noteHTML(n.label, n.oct);
 }
+/* plain-language verdict with the direction to move the hand */
+function verdict(c, tol){
+  if(Math.abs(c) >= 60){ const s = Math.round(c/100) || Math.sign(c); return {txt:`${Math.abs(s)} half step${Math.abs(s) === 1 ? "" : "s"} too ${s > 0 ? "high" : "low"} – wrong note`, cls:"warn"}; }
+  if(Math.abs(c) <= tol) return {txt:`In tune (${c > 0.5 ? "+" : c < -0.5 ? "−" : ""}${Math.abs(Math.round(c))}¢)`, cls:"good"};
+  return {txt: c < 0 ? `${Math.round(-c)}¢ flat – a little toward the bridge` : `${Math.round(c)}¢ sharp – a little toward the scroll`, cls:"warn"};
+}
 
 /* free mode: scale, random, ear, melody */
 function nextNote(now){
   if(game.kind === "random" || game.kind === "ear") game.notes.push(pickRandom());
   const n = game.notes[game.i]; n.freq = midiToFreq(n.midi);
-  const cur = {shown: now, firstSound: null, land: [], inSince: null, holdS: []}; game.cur = cur;
+  const cur = {shown: now, firstSound: null, land: [], inSince: null, holdV: [], win: [], att: null}; game.cur = cur;
   traceMark(now, game.i);
   showTarget(n);
   if(game.showScore){
     if(game.kind === "random") renderScore($("scoreBox"), [n], {clef:game.st.clef, fifths:game.fifths, single:true}).setCur(0);
     else game.score && game.score.setCur(game.i);
   }
+  const live = game.fb === "live";
+  $("g2").toggleAttribute("hidden", !!(!live)); if(!live) g2.set(null);
   $("gCount").textContent = `${game.i+1} / ${game.total}`;
-  setDir(game.kind === "ear" ? "Listen, then find the note" : game.i === 0 ? "Clock starts when you play" : "Play the note", "wait");
+  if(game.kind === "ear") setDir("Listen, then find the note", "wait");
+  else if(!live) setDir(game.i === 0 ? "Play it and hold it steady – no hints" : "Play the note and hold it", "wait");
+  else setDir(game.i === 0 ? "Clock starts when you play" : "Play the note", "wait");
   $("gTime").textContent = "0.0"; $("playCard").classList.add("waiting");
   $("hold").style.width = "0";
   renderChips();
@@ -1170,59 +1754,103 @@ function renderChips(){
   const list = fixed ? game.notes : game.notes.slice(0, game.i + 1);
   $("progressChips").innerHTML = list.map((n, i) => {
     const r = game.results[i];
-    const cls = i === game.i ? "cur" : r ? (r.skip ? "skip" : "done") : "";
-    const sub = r ? (r.skip ? "skip" : (r.t/1000).toFixed(1)+"s") : n.oct;
+    let cls = i === game.i ? "cur" : r ? (r.skip ? "skip" : "done") : "";
+    let sub = n.oct;
+    if(r){
+      if(r.skip) sub = "skip";
+      else if(game.fb === "end"){ sub = "✓"; cls = "seen"; }
+      else if(game.fb === "note"){ sub = (r.fin > 0.5 ? "+" : "") + Math.round(r.fin) + "¢"; cls = Math.abs(r.fin) <= game.tol ? "done" : "miss"; }
+      else sub = (r.t/1000).toFixed(1) + "s";
+    }
     const hide = !r && (game.kind === "ear" || game.showScore);
     return `<span class="chip ${cls}">${hide ? "?" : n.label}<small>${hide ? "" : sub}</small></span>`;
   }).join("") + (!fixed && game.i + 1 < game.total ? `<span class="chip"><small>+${game.total - game.i - 1}</small></span>` : "");
 }
-function freeFrame(f, t){
+function freeFrame(f, t, info){
   const c0 = game.cur; if(!c0 || t < game.pausedUntil) return;
-  const n = game.notes[game.i];
-  $("gTime").textContent = c0.firstSound ? ((t - c0.firstSound)/1000).toFixed(1) : "0.0";
+  const n = game.notes[game.i], live = game.fb === "live";
+  if(live) $("gTime").textContent = c0.firstSound ? ((t - c0.firstSound)/1000).toFixed(1) : "0.0";
   if(!f || t < toneUntil){
-    if(!f){ g2.set(null); $("gCents").textContent = "–"; $("gHz").textContent = "–"; c0.inSince = null; c0.holdS = []; $("hold").style.width = "0"; recordTrace(t, null); }
+    if(!f){
+      if(live){ g2.set(null); $("gCents").textContent = "–"; $("gHz").textContent = "–"; }
+      c0.inSince = null; c0.holdV = []; c0.win = []; $("hold").style.width = "0"; recordTrace(t, null);
+    }
     return;
   }
   const c = centsOff(f, n.freq);
   recordTrace(t, c);
-  $("gHz").textContent = f.toFixed(1);
-  $("gCents").textContent = Math.abs(c) > 999 ? "far" : (c>0?"+":"") + c.toFixed(0);
-  const inT = Math.abs(c) <= game.tol;
-  g2.set(Math.abs(c) > 60 ? Math.sign(c)*60 : c, inT);
   // the previous note may still be ringing when the new one appears: that isn't an attempt yet
   const prev = game.i > 0 ? game.notes[game.i-1] : null;
   const ringing = prev && prev.midi !== n.midi && Math.abs(centsOff(f, midiToFreq(prev.midi))) < 60;
   if(t - c0.shown > 150 && !ringing){
-    if(!c0.firstSound){ c0.firstSound = t; $("playCard").classList.remove("waiting"); }
+    if(!c0.firstSound){ c0.firstSound = t; $("playCard").classList.remove("waiting"); if(info.att != null) c0.att = info.att; }
     if(Math.abs(c) <= 150 && c0.land.length < 5) c0.land.push(c);
   }
-  if(Math.abs(c) > 150){ const s = Math.round(c/100); setDir(`That’s ${Math.abs(s)} semitone${Math.abs(s)===1?"":"s"} ${s>0?"too high":"too low"}`, "warn"); }
+  if(!live){ blindFrame(c0, c, t, ringing); return; }
+  $("gHz").textContent = f.toFixed(1);
+  $("gCents").textContent = Math.abs(c) > 999 ? "far" : (c>0?"+":"") + c.toFixed(0);
+  const inT = Math.abs(c) <= game.tol;
+  g2.set(Math.abs(c) > 60 ? Math.sign(c)*60 : c, inT);
+  if(Math.abs(c) > 150){ const s = Math.round(c/100); setDir(`That’s ${Math.abs(s)} half step${Math.abs(s)===1?"":"s"} ${s>0?"too high":"too low"}`, "warn"); }
   else if(inT) setDir("In tune – hold it", "good");
-  else setDir(c < 0 ? "A little flat – move up" : "A little sharp – move down", "warn");
+  else setDir(c < 0 ? "A little flat – move toward the bridge" : "A little sharp – move toward the scroll", "warn");
   if(inT && c0.firstSound){
     if(!c0.inSince) c0.inSince = t;
-    c0.holdS.push(Math.abs(c));
+    c0.holdV.push(c);
     const p = Math.min(1, (t - c0.inSince)/game.hold);
     $("hold").style.width = (p*100) + "%";
     if(p >= 1) completeNote(t, false);
-  } else { c0.inSince = null; c0.holdS = []; $("hold").style.width = "0"; }
+  } else { c0.inSince = null; c0.holdV = []; $("hold").style.width = "0"; }
   if(game && game.cur === c0 && c0.firstSound && t - c0.firstSound > 60000) completeNote(t, true);
 }
-function completeNote(t, skip){
+/* blind: a note counts once you settle on a steady pitch, wherever it is */
+function blindFrame(c0, c, t, ringing){
+  if(ringing || !c0.firstSound){ return; }
+  setDir("Hearing you – hold it steady", "wait");
+  c0.win.push([t, c]);
+  // keep only the trailing run of frames that agree with the current pitch
+  let k = c0.win.length - 1;
+  while(k > 0 && Math.abs(c0.win[k-1][1] - c) <= 18) k--;
+  if(k > 0) c0.win = c0.win.slice(k);
+  const span = t - c0.win[0][0];
+  $("hold").style.width = Math.min(100, span/game.commitMs*100) + "%";
+  if(span >= game.commitMs) completeNote(t, false, {start: c0.win[0][0], vals: c0.win.map(x => x[1])});
+  else if(c0.firstSound && t - c0.firstSound > 60000) completeNote(t, true);
+}
+function completeNote(t, skip, blind){
   const c0 = game.cur, n = game.notes[game.i];
   const land = c0.land.length ? median(c0.land) : null;
-  game.results[game.i] = skip ? {n:n.name, m:n.midi, skip:true}
-    : {n:n.name, m:n.midi, t: Math.round(c0.inSince - (c0.firstSound || c0.inSince)), wait: c0.firstSound ? Math.round(c0.firstSound - c0.shown) : 0,
-       land: land===null ? null : Math.round(land*10)/10, acc: Math.round(mean(c0.holdS)*10)/10};
+  let r;
+  if(skip) r = {n:n.name, m:n.midi, skip:true};
+  else {
+    const start = blind ? blind.start : c0.inSince, vals = blind ? blind.vals : c0.holdV;
+    r = {n:n.name, m:n.midi, t: Math.round(start - (c0.firstSound || start)), wait: c0.firstSound ? Math.round(c0.firstSound - c0.shown) : 0,
+         land: r1(land), acc: r1(mean(vals.map(Math.abs))), sd: vals.length >= 5 ? r1(std(vals)) : null};
+    if(blind) r.fin = r1(median(vals));
+  }
+  if(c0.att != null) r.att = Math.round(c0.att);
+  if(n.deg != null) r.d = n.deg;
+  if(n.acc) r.a = n.acc;
+  game.results[game.i] = r;
   game.cur = null;
-  if(game.showScore && game.score && game.kind !== "random") game.score.mark(game.i, skip ? "miss" : "done");
+  const fb = game.fb;
+  if(game.showScore && game.score && game.kind !== "random"){
+    if(skip) game.score.mark(game.i, "miss");
+    else if(fb === "end") game.score.mark(game.i, "seen");
+    else if(fb === "note") game.score.mark(game.i, Math.abs(r.fin) <= game.tol ? "done" : "miss");
+    else game.score.mark(game.i, "done");
+  }
   if(game.kind === "ear") $("gNote").innerHTML = noteHTML(n.label, n.oct);
-  const card = $("playCard"); card.classList.remove("flash"); void card.offsetWidth; card.classList.add("flash");
+  let pause = game.kind === "ear" ? 800 : 350;
+  if(!skip && fb === "note"){
+    const v = verdict(r.fin, game.tol);
+    $("g2").toggleAttribute("hidden", !!(false)); g2.set(Math.abs(r.fin) > 60 ? Math.sign(r.fin)*60 : r.fin, Math.abs(r.fin) <= game.tol);
+    setDir(v.txt, v.cls); pause = 1600;
+  } else if(!skip && fb === "end"){ setDir("Got it", "wait"); pause = Math.max(pause, 450); }
+  if(fb === "live" || fb === "note"){ const card = $("playCard"); card.classList.remove("flash"); void card.offsetWidth; card.classList.add("flash"); }
   game.i++;
   renderChips();
-  if(game.i >= game.total){ finishGame(); return; }
-  const pause = game.kind === "ear" ? 800 : 350;
+  if(game.i >= game.total){ game.pausedUntil = t + pause; setTimeout(() => game && finishGame(), fb === "note" ? 1200 : 0); return; }
   game.pausedUntil = t + pause;
   setTimeout(() => game && !game.cur && nextNote(performance.now()), pause);
 }
@@ -1258,8 +1886,8 @@ function startMetro(){
   showTarget(game.notes[0]); setDir("Get ready – first note after the count-in", "wait");
   game.score && game.score.setCur(0);
 }
-function metroFrame(f, t){
-  const M = game.metro, notes = game.notes;
+function metroFrame(f, t, info){
+  const M = game.metro, notes = game.notes, live = game.fb === "live";
   const b = Math.floor((t - M.p0)/M.beatMs);
   $("beats").querySelectorAll("i").forEach((el, k) => el.classList.toggle("on", b >= 0 && b % M.meter === k));
   if(t < notes[0].ws){ $("countIn").textContent = b < 0 ? "Get ready" : `Count-in ${M.meter - b}`; }
@@ -1269,26 +1897,30 @@ function metroFrame(f, t){
   }
   if(t >= M.end){ finalizeMetro(M.idx); finishGame(); return; }
   const n = notes[Math.max(0, M.idx)];
-  if(!f){ g2.set(null); $("gCents").textContent = "–"; $("gHz").textContent = "–"; if(M.idx >= 0) recordTrace(t, null); }
   const c = f ? centsOff(f, n.freq) : null;
-  if(f){
-    $("gHz").textContent = f.toFixed(1); $("gCents").textContent = Math.abs(c) > 999 ? "far" : (c>0?"+":"") + c.toFixed(0);
-    g2.set(Math.abs(c) > 60 ? Math.sign(c)*60 : c, Math.abs(c) <= game.tol);
-    if(M.idx >= 0) recordTrace(t, c);
+  if(M.idx >= 0) recordTrace(t, c);
+  if(live){
+    if(!f){ g2.set(null); $("gCents").textContent = "–"; $("gHz").textContent = "–"; }
+    else { $("gHz").textContent = f.toFixed(1); $("gCents").textContent = Math.abs(c) > 999 ? "far" : (c>0?"+":"") + c.toFixed(0); g2.set(Math.abs(c) > 60 ? Math.sign(c)*60 : c, Math.abs(c) <= game.tol); }
   }
   if(M.idx < 0) return;
   const A = M.acc;
+  if(f && info.att != null && A.att == null) A.att = info.att;
   if(t - n.ws >= Math.min(150, (n.we - n.ws)*0.25)){
     A.tot++;
-    if(f){ A.snd++; A.abs.push(Math.abs(c)); if(Math.abs(c) <= game.tol) A.in++; if(A.land.length < 5 && Math.abs(c) <= 150) A.land.push(c); }
+    if(f){ A.snd++; A.abs.push(Math.abs(c)); A.all.push(c); if(Math.abs(c) <= game.tol) A.in++; if(Math.abs(c) <= 150){ A.sgn.push(c); if(A.land.length < 5) A.land.push(c); } }
   }
-  if(f){ if(Math.abs(c) <= game.tol) setDir("In tune", "good"); else if(Math.abs(c) > 150) setDir("Wrong note", "warn"); else setDir(c < 0 ? "Flat – move up" : "Sharp – move down", "warn"); }
-  else setDir("Play now", "wait");
-  $("gTime").textContent = A.tot ? Math.round(A.in/A.tot*100) + "%" : "–";
+  if(live){
+    if(f){ if(Math.abs(c) <= game.tol) setDir("In tune", "good"); else if(Math.abs(c) > 150) setDir("Wrong note", "warn"); else setDir(c < 0 ? "Flat – toward the bridge" : "Sharp – toward the scroll", "warn"); }
+    else setDir("Play now", "wait");
+    $("gTime").textContent = A.tot ? Math.round(A.in/A.tot*100) + "%" : "–";
+  } else setDir(f ? "Hearing you" : "Play now", "wait");
 }
 function startWindow(i, t){
-  game.metro.acc = {tot:0, in:0, snd:0, abs:[], land:[]};
-  traceMark(t, i); $("countIn").textContent = "";
+  game.metro.acc = {tot:0, in:0, snd:0, abs:[], land:[], sgn:[], all:[], att:null};
+  traceMark(t, i);
+  const prev = i > 0 ? game.results[i-1] : null;
+  $("countIn").textContent = game.fb === "note" && prev ? (prev.sm == null ? (prev.off != null ? "Last note: " + verdict(prev.off, game.tol).txt : "Last note: no clear pitch") : "Last note: " + verdict(prev.sm, game.tol).txt.replace(/ – a little/, ", move")) : "";
   showTarget(game.notes[i]);
   game.score && game.score.setCur(i);
   $("gCount").textContent = `${i+1} / ${game.total}`;
@@ -1296,59 +1928,88 @@ function startWindow(i, t){
 function finalizeMetro(i){
   const A = game.metro.acc; if(!A || i < 0) return;
   const n = game.notes[i], inPct = A.tot ? A.in/A.tot*100 : 0;
-  game.results[i] = {n:n.name, m:n.midi, inPct: Math.round(inPct), land: A.land.length ? Math.round(median(A.land)) : null, acc: A.abs.length ? Math.round(median(A.abs)) : null, silent: A.snd === 0};
-  game.score && game.score.mark(i, inPct >= 50 ? "done" : "miss");
+  const r = {n:n.name, m:n.midi, inPct: Math.round(inPct), land: A.land.length ? Math.round(median(A.land)) : null,
+             sm: A.sgn.length >= 3 ? r1(median(A.sgn)) : null, sd: A.sgn.length >= 5 ? r1(std(A.sgn)) : null,
+             acc: A.abs.length ? Math.round(median(A.abs)) : null, silent: A.snd === 0};
+  if(A.att != null) r.att = Math.round(A.att);
+  if(r.sm == null && A.all.length >= 3) r.off = r1(median(A.all));
+  if(n.deg != null) r.d = n.deg;
+  if(n.acc) r.a = n.acc;
+  game.results[i] = r;
+  if(game.score) game.score.mark(i, game.fb === "end" ? "seen" : inPct >= 50 ? "done" : "miss");
   game.metro.acc = null;
 }
 
 /* long tone */
 function startLong(){
   const n = game.notes[0]; n.freq = midiToFreq(n.midi);
-  game.cur = {firstSound:null, samples:[], tot:0, snd:0, inN:0, lastDraw:0};
+  game.cur = {firstSound:null, samples:[], tot:0, snd:0, inN:0, lastDraw:0, rms:[], clars:[], harm:0, gap:null, drops:0, att:null};
   showTarget(n); $("gCount").textContent = `${game.st.longDur}s`;
   setDir(`Play ${n.label}${n.oct} – the clock starts when you’re close`, "wait");
   $("gTime").textContent = game.st.longDur.toFixed(1);
 }
-function longFrame(f, t){
-  const c0 = game.cur, n = game.notes[0], D = game.st.longDur*1000;
+function longFrame(f, t, info){
+  const c0 = game.cur, n = game.notes[0], D = game.st.longDur*1000, live = game.fb === "live";
   const c = f ? centsOff(f, n.freq) : null;
-  if(f){ $("gHz").textContent = f.toFixed(1); $("gCents").textContent = Math.abs(c) > 999 ? "far" : (c>0?"+":"") + c.toFixed(0); g2.set(Math.abs(c) > 60 ? Math.sign(c)*60 : c, Math.abs(c) <= game.tol); }
-  else { g2.set(null); $("gCents").textContent = "–"; $("gHz").textContent = "–"; }
+  if(live){
+    if(f){ $("gHz").textContent = f.toFixed(1); $("gCents").textContent = Math.abs(c) > 999 ? "far" : (c>0?"+":"") + c.toFixed(0); g2.set(Math.abs(c) > 60 ? Math.sign(c)*60 : c, Math.abs(c) <= game.tol); }
+    else { g2.set(null); $("gCents").textContent = "–"; $("gHz").textContent = "–"; }
+  }
   if(!c0.firstSound){
-    if(f && Math.abs(c) <= 100){ c0.firstSound = t; game.t0 = t; game.trace = {p:[], m:[[0,0]]}; game.lastTr = 0; $("playCard").classList.remove("waiting"); }
-    else { if(f && Math.abs(c) > 100) setDir("That’s a different note – find " + n.label + n.oct, "warn"); return; }
+    if(f && Math.abs(c) <= 100){ c0.firstSound = t; c0.att = info.att; game.t0 = t; game.trace = {p:[], m:[[0,0]]}; game.lastTr = 0; $("playCard").classList.remove("waiting"); }
+    else { if(f && Math.abs(c) > 100) setDir(live ? "That’s a different note – find " + n.label + n.oct : "Play " + n.label + n.oct, live ? "warn" : "wait"); return; }
   }
   const el = t - c0.firstSound;
   if(el >= D){ finishGame(); return; }
   c0.tot++;
-  if(f){ c0.snd++; if(Math.abs(c) <= 100) c0.samples.push(c); if(Math.abs(c) <= game.tol) c0.inN++; }
+  if(f){
+    if(c0.gap != null){ c0.drops++; c0.gap = null; }
+    c0.snd++;
+    if(Math.abs(c) <= 100){ c0.samples.push([el, c]); if(Math.abs(c) <= game.tol) c0.inN++; }
+    else if(Math.abs(Math.abs(c) - 1200) <= 60) c0.harm++;
+    if(el > 400){ c0.rms.push(info.rms || 0); if(info.clar) c0.clars.push(info.clar); }
+  } else if(c0.gap == null) c0.gap = t;
   recordTrace(t, c);
   $("gTime").textContent = ((D - el)/1000).toFixed(1);
+  if(!live){ setDir(f ? "Keep it going" : "Keep the bow moving", "wait"); return; }
   if(f) setDir(Math.abs(c) <= game.tol ? "Steady – keep going" : c < 0 ? "Drifting flat" : "Drifting sharp", Math.abs(c) <= game.tol ? "good" : "warn");
   else setDir("Keep the bow moving", "warn");
   if(t - c0.lastDraw > 150){ c0.lastDraw = t; drawTrace($("liveTrace"), game.trace, [n.label], game.tol, D); }
 }
+/* slope of y over x (least squares) */
+function slope(pts){
+  if(pts.length < 3) return 0;
+  const mx = mean(pts.map(p => p[0])), my = mean(pts.map(p => p[1]));
+  let num = 0, den = 0; pts.forEach(([x, y]) => { num += (x-mx)*(y-my); den += (x-mx)*(x-mx); });
+  return den ? num/den : 0;
+}
 
-function onPitch(f, t){
+function onPitch(f, t, info){
+  info = info || {};
   if(view === "tuner") updateTuner(f, t);
   if(!game) return;
-  if(game.mode === "free") freeFrame(f, t);
-  else if(game.mode === "metro") metroFrame(f, t);
-  else longFrame(f, t);
+  if(f && info.clar) game.clars.push(info.clar);
+  if(game.mode === "free") freeFrame(f, t, info);
+  else if(game.mode === "metro") metroFrame(f, t, info);
+  else longFrame(f, t, info);
 }
 
 /* ---------- finishing ---------- */
 const starsFree = ms => ms < 1500 ? 3 : ms < 3000 ? 2 : 1;
 const starsIn = p => p >= 80 ? 3 : p >= 55 ? 2 : p >= 25 ? 1 : 0;
 const starsSd = sd => sd < 4 ? 3 : sd < 8 ? 2 : 1;
+const starsBlind = (c, tol) => Math.abs(c) <= tol ? 3 : Math.abs(c) <= 2*tol ? 2 : Math.abs(c) < 50 ? 1 : 0;
 function std(arr){ const m = mean(arr); return arr.length > 1 ? Math.sqrt(arr.reduce((a,b)=>a+(b-m)*(b-m),0)/(arr.length-1)) : 0; }
+const signC = v => v == null ? "–" : (v > 0.5 ? "+" : v < -0.5 ? "−" : "") + Math.abs(Math.round(v)) + "¢";
 function finishGame(early){
   if(!game) return;
   const g = game;
   if(g.metro){ if(early && g.metro.acc) finalizeMetro(g.metro.idx); try{ g.metro.bus.disconnect(); }catch(e){} }
   game = null;
   const base = {id: Date.now().toString(36), date: new Date().toISOString(), game:g.kind, mode:g.mode, label:g.label, tol:g.tol,
+                feedback:g.fb, ktype: g.kind === "long" ? null : g.st.type, disp: g.kind === "ear" ? "ear" : g.showScore ? "score" : "letter",
                 dur: Date.now() - g.started, trace: g.trace};
+  if(g.clars.length >= 10) base.clar = Math.round(median(g.clars)*1000)/1000;
   if(g.mode === "free") base.hold = g.hold;
   if(g.mode === "metro") base.bpm = g.st.bpm;
   if(g.kind === "melody") base.seed = g.seed;
@@ -1356,17 +2017,35 @@ function finishGame(early){
   const res = g.results.filter(Boolean);
   if(g.mode === "free"){
     const hit = res.filter(r => !r.skip);
-    if(hit.length >= 3) sess = Object.assign(base, {notes:res, med: Math.round(median(hit.map(r => r.t))),
-      land: median(hit.filter(r => r.land!==null).map(r => Math.abs(r.land))), partial: res.length < g.total});
+    if(hit.length >= 3){
+      sess = Object.assign(base, {notes:res, med: Math.round(median(hit.map(r => r.t))),
+        land: median(hit.filter(r => r.land!==null).map(r => Math.abs(r.land))), partial: res.length < g.total});
+      if(g.fb !== "live"){
+        sess.inPct = Math.round(hit.filter(r => Math.abs(r.fin) <= g.tol).length / hit.length * 100);
+        sess.bmed = r1(median(hit.map(r => Math.abs(r.fin))));
+      }
+    }
   } else if(g.mode === "metro"){
     if(res.length >= 3) sess = Object.assign(base, {notes:res, inPct: Math.round(mean(res.map(r => r.inPct))),
       land: median(res.filter(r => r.land!==null).map(r => Math.abs(r.land))), med:null, partial: res.length < g.total});
   } else {
     const c0 = g.cur, el = c0.firstSound ? performance.now() - c0.firstSound : 0;
     if(c0.samples.length >= 10 && el >= 2000){
-      const sd = std(c0.samples), m = mean(c0.samples), inPct = c0.inN / c0.tot * 100;
-      sess = Object.assign(base, {notes:[{n:g.notes[0].name, m:g.notes[0].midi, sd: Math.round(sd*10)/10, mean: Math.round(m*10)/10, inPct: Math.round(inPct)}],
-        sd: Math.round(sd*10)/10, mean: Math.round(m*10)/10, inPct: Math.round(inPct), med:null, land:null, partial: el < g.st.longDur*1000 - 100});
+      const vals = c0.samples.map(x => x[1]);
+      const sd = std(vals), m = mean(vals), inPct = c0.inN / c0.tot * 100;
+      const durS = Math.min(el, g.st.longDur*1000)/1000;
+      const sl = slope(c0.samples.map(([t, c]) => [t/1000, c]));
+      const rr = c0.rms, third = Math.floor(rr.length/3);
+      const feat = {sd:r1(sd), mean:r1(m), inPct:Math.round(inPct), drift: r1(sl*durS), drops:c0.drops,
+        harm: c0.snd ? Math.round(c0.harm/c0.snd*1000)/1000 : 0};
+      if(rr.length >= 15 && mean(rr) > 0){
+        feat.vcv = Math.round(std(rr)/mean(rr)*100)/100;
+        feat.vratio = Math.round(mean(rr.slice(-third))/mean(rr.slice(0, third))*100)/100;
+      }
+      if(c0.clars.length >= 10) feat.clar = Math.round(median(c0.clars)*1000)/1000;
+      if(c0.att != null) feat.att = Math.round(c0.att);
+      sess = Object.assign(base, {notes:[Object.assign({n:g.notes[0].name, m:g.notes[0].midi}, feat)]}, feat,
+        {med:null, land:null, partial: el < g.st.longDur*1000 - 100});
     }
   }
   if(sess){
@@ -1382,34 +2061,46 @@ function traceLabels(s){ return (s.notes || []).map(r => r.n.replace(/-?\d+$/, "
 function showDone(sess, prev, g){
   $("setup").hidden = true; $("play").hidden = true;
   const box = $("done"); box.hidden = false;
+  document.querySelector("main").scrollTo({top:0});
   if(!sess){
     const need = g.mode === "long" ? "Hold the note for at least two seconds" : "Finish at least three notes";
     box.innerHTML = `<div class="card empty"><h3>Session not saved</h3><p class="muted">${need} and the session is saved to your progress.</p><button class="btn primary" id="again">Back to setup</button></div>`;
     $("again").onclick = renderSetup; return;
   }
-  const res = sess.notes;
+  const res = sess.notes, blind = isBlind(sess) && sess.mode === "free";
   let headline, tiles, table, cmp = "", note = "";
-  if(sess.mode === "free"){
+  const th = cols => cols.map((h,i)=>`<th${i?' style="text-align:right"':""}>${h}</th>`).join("");
+  if(blind){
+    const hit = res.filter(r => !r.skip), total = hit.reduce((a,r)=>a+starsBlind(r.fin, sess.tol),0), max = res.length*3;
+    headline = `${hit.filter(r => Math.abs(r.fin) <= sess.tol).length} of ${res.length} in tune`;
+    if(prev && prev.inPct != null){ const d = sess.inPct - prev.inPct; cmp = deltaPill(d, 2, d>0 ? `▲ ${d}% more in tune` : `▼ ${-d}% less in tune`); }
+    const bias = median(hit.filter(r => Math.abs(r.fin) < 60).map(r => r.fin));
+    tiles = [[sess.inPct+"%","in tune"],[Math.round(sess.bmed)+"¢","typical miss"],[signC(bias),"tendency"]];
+    note = `You played without hints, so this shows where your hand goes on its own. ${starsLine(total, max)}. “First” is your first sound, “Settled” where you held the note.`;
+    table = th(["Note","First","Settled",""]) + res.map(r => r.skip ? `<tr><td><b>${r.n}</b></td><td class="n">–</td><td class="n">skipped</td><td></td></tr>` :
+      `<tr><td><b>${r.n}</b></td><td class="n">${signC(r.land)}</td><td class="n"><b style="color:var(${Math.abs(r.fin) <= sess.tol ? "--good" : "--warn"})">${signC(r.fin)}</b></td><td class="n stars">${"★".repeat(starsBlind(r.fin, sess.tol))}</td></tr>`).join("");
+  } else if(sess.mode === "free"){
     const hit = res.filter(r => !r.skip), total = hit.reduce((a,r)=>a+starsFree(r.t),0), max = res.length*3;
     headline = starsLine(total, max);
     if(prev && prev.med){ const d = (prev.med - sess.med)/1000; cmp = deltaPill(d, 0.05, d>0 ? `▼ ${d.toFixed(1)}s faster` : `▲ ${(-d).toFixed(1)}s slower`); }
     tiles = [[(sess.med/1000).toFixed(1)+"s","median time"],[sess.land===null?"–":sess.land.toFixed(0)+"¢","first try off"],[Math.round(sess.dur/1000)+"s","total"]];
     const slow = hit.slice().sort((a,b)=>b.t-a.t).slice(0,3);
     note = `Took longest: ${slow.map(r=>`<b>${r.n.replace(/\d+$/,"")}</b> (${(r.t/1000).toFixed(1)}s)`).join(", ")}. Stars: under 1.5 s ★★★, under 3 s ★★.`;
-    table = ["Note","Time","First try","Stars"].map((h,i)=>`<th${i?' style="text-align:right"':""}>${h}</th>`).join("") + res.map(r => `<tr><td><b>${r.n}</b></td><td class="n">${r.skip?"skipped":(r.t/1000).toFixed(1)+"s"}</td><td class="n">${r.skip||r.land===null?"–":(r.land>0?"+":"")+r.land.toFixed(0)+"¢"}</td><td class="n stars">${r.skip?"":"★".repeat(starsFree(r.t))}</td></tr>`).join("");
+    table = th(["Note","Time","First try","Stars"]) + res.map(r => `<tr><td><b>${r.n}</b></td><td class="n">${r.skip?"skipped":(r.t/1000).toFixed(1)+"s"}</td><td class="n">${r.skip?"–":signC(r.land)}</td><td class="n stars">${r.skip?"":"★".repeat(starsFree(r.t))}</td></tr>`).join("");
   } else if(sess.mode === "metro"){
     const total = res.reduce((a,r)=>a+starsIn(r.inPct),0), max = res.length*3;
     headline = starsLine(total, max);
     if(prev && prev.inPct != null){ const d = sess.inPct - prev.inPct; cmp = deltaPill(d, 2, d>0 ? `▲ ${d}% more in tune` : `▼ ${-d}% less in tune`); }
     tiles = [[sess.inPct+"%","in tune"],[sess.land===null?"–":sess.land.toFixed(0)+"¢","first try off"],["♩="+sess.bpm,"tempo"]];
     note = `Each note counts the time you were inside ±${sess.tol}¢ after its first moment. Stars: 80% ★★★, 55% ★★, 25% ★.`;
-    table = ["Note","In tune","First try","Stars"].map((h,i)=>`<th${i?' style="text-align:right"':""}>${h}</th>`).join("") + res.map(r => `<tr><td><b>${r.n}</b></td><td class="n">${r.silent?"no sound":r.inPct+"%"}</td><td class="n">${r.land===null?"–":(r.land>0?"+":"")+r.land+"¢"}</td><td class="n stars">${"★".repeat(starsIn(r.inPct))}</td></tr>`).join("");
+    table = th(["Note","In tune","Average","Stars"]) + res.map(r => `<tr><td><b>${r.n}</b></td><td class="n">${r.silent?"no sound":r.inPct+"%"}</td><td class="n">${signC(r.sm)}</td><td class="n stars">${"★".repeat(starsIn(r.inPct))}</td></tr>`).join("");
   } else {
     const st = starsSd(sess.sd);
     headline = starsLine(st, 3);
     if(prev && prev.sd != null){ const d = prev.sd - sess.sd; cmp = deltaPill(d, 0.3, d>0 ? `▼ ${d.toFixed(1)}¢ steadier` : `▲ ${(-d).toFixed(1)}¢ wobblier`); }
-    tiles = [["±"+sess.sd.toFixed(1)+"¢","wobble"],[(sess.mean>0?"+":"")+sess.mean.toFixed(0)+"¢","average"],[sess.inPct+"%","in tune"]];
-    note = `Wobble is the spread of your pitch (standard deviation). Average shows a tendency: ${Math.abs(sess.mean) < 3 ? "you stayed centred" : sess.mean > 0 ? "you leaned sharp" : "you leaned flat"}. Stars: under 4¢ ★★★, under 8¢ ★★.`;
+    tiles = [["±"+sess.sd.toFixed(1)+"¢","wobble"],[signC(sess.mean),"average"],[sess.drops ? sess.drops + "" : "0","breaks"]];
+    const fade = sess.vratio != null ? (sess.vratio < 0.85 ? `got ${Math.round((1-sess.vratio)*100)}% quieter toward the end` : sess.vratio > 1.2 ? `got ${Math.round((sess.vratio-1)*100)}% louder toward the end` : "stayed even in volume") : null;
+    note = `Wobble is how much your pitch moved; average shows a lean (${Math.abs(sess.mean) < 3 ? "you stayed centred" : sess.mean > 0 ? "you leaned sharp" : "you leaned flat"}). From start to end the pitch ${Math.abs(sess.drift||0) < 4 ? "held level" : (sess.drift < 0 ? "sank " : "rose ") + Math.abs(Math.round(sess.drift)) + "¢"}${fade ? " and the sound " + fade : ""}. Stars: under 4¢ ★★★, under 8¢ ★★.`;
     table = "";
   }
   box.innerHTML = `<div class="card">
@@ -1419,8 +2110,10 @@ function showDone(sess, prev, g){
     <p class="muted" style="font-size:.88rem">${note}</p>
     <div class="row" id="doneBtns"></div>
   </div>
+  <div class="card"><h3>Teacher’s notes</h3><div class="inslist" id="doneTeach"></div><p class="muted cents-note">100 cents = one half step. Most listeners start to notice around 5–10 cents.</p></div>
   <div class="card"><h3>Pitch trace</h3><p class="muted" style="font-size:.82rem">Your pitch relative to each target note. The green band is your tolerance. Swipe sideways on long sessions.</p><div id="doneTrace"></div></div>
   ${table ? `<div class="card"><div class="tablewrap"><table>${table}</table></div></div>` : ""}`;
+  renderInsights($("doneTeach"), diagnose([sess], {single:true}), 3, "No clear pattern in this session. Play a few more and check the Progress tab, where the teacher looks across sessions.");
   drawTrace($("doneTrace"), sess.trace, traceLabels(sess), sess.tol);
   const btns = $("doneBtns");
   const add = (txt, cls, fn) => { const b = document.createElement("button"); b.className = "btn " + cls; b.textContent = txt; b.onclick = fn; btns.appendChild(b); };
@@ -1456,8 +2149,10 @@ function renderDash(){
   const cutoff = dashRange ? Date.now() - dashRange*864e5 : 0;
   const ss = all.filter(s => new Date(s.date).getTime() >= cutoff && (dashGame==="all" || sessGame(s)===dashGame) && (dashFilter==="all" || s.label===dashFilter))
                .sort((a,b) => a.date < b.date ? -1 : 1);
-  const free = ss.filter(s => sessMode(s) === "free"), metro = ss.filter(s => sessMode(s) === "metro"), long = ss.filter(s => sessMode(s) === "long");
-  const landS = ss.filter(s => s.land != null);
+  const free = ss.filter(s => sessMode(s) === "free" && !isBlind(s)), blindS = ss.filter(s => sessMode(s) === "free" && isBlind(s)), metro = ss.filter(s => sessMode(s) === "metro"), long = ss.filter(s => sessMode(s) === "long");
+  const landS = ss.filter(s => s.land != null && !isBlind(s));
+  renderInsights($("teachList"), diagnose(ss.slice(-20)), 3, "Nothing stands out yet. After a few more sessions the teacher will point out patterns in your playing.");
+  $("fbCard").hidden = !renderFingerboard($("fbMap"), ss.slice(-30));
   const ends = arr => { const k = Math.max(1, Math.min(5, Math.floor(arr.length/3) || 1)); return [arr.slice(0,k), arr.slice(-k)]; };
   const delta = (a, b, lowerBetter, n) => {
     if(a==null || b==null || n < 4) return `<span class="delta flat">needs more sessions</span>`;
@@ -1468,6 +2163,7 @@ function renderDash(){
   const tiles = [];
   if(free.length){ const [a,b] = ends(free), m = x => median(x.map(s=>s.med))/1000; tiles.push(tile("Time to pitch", m(b).toFixed(1)+"s", delta(m(a), m(b), true, free.length))); }
   if(landS.length){ const [a,b] = ends(landS), m = x => median(x.map(s=>s.land)); tiles.push(tile("First try off", m(b).toFixed(0)+"¢", delta(m(a), m(b), true, landS.length))); }
+  if(blindS.length){ const [a,b] = ends(blindS), m = x => median(x.map(s=>s.bmed)); tiles.push(tile("Miss without hints", Math.round(m(b))+"¢", delta(m(a), m(b), true, blindS.length))); }
   if(metro.length){ const [a,b] = ends(metro), m = x => median(x.map(s=>s.inPct)); tiles.push(tile("In tune on beat", Math.round(m(b))+"%", delta(m(a), m(b), false, metro.length))); }
   if(long.length){ const [a,b] = ends(long), m = x => median(x.map(s=>s.sd)); tiles.push(tile("Long-tone wobble", "±"+m(b).toFixed(1)+"¢", delta(m(a), m(b), true, long.length))); }
   const daysInRange = Object.entries(data.days).filter(([k]) => new Date(k+"T12:00").getTime() >= cutoff - 864e5);
@@ -1479,6 +2175,7 @@ function renderDash(){
   const chart = (card, box, pts, fmt) => { $(card).hidden = !pts.length; if(pts.length) lineChart($(box), pts, fmt); };
   chart("cTimeCard", "cTime", free.map(s => ({x:+new Date(s.date), y:s.med/1000, s})), v => v.toFixed(1)+"s");
   chart("cLandCard", "cLand", landS.map(s => ({x:+new Date(s.date), y:s.land, s})), v => v.toFixed(0)+"¢");
+  chart("cBlindCard", "cBlind", blindS.map(s => ({x:+new Date(s.date), y:s.bmed, s})), v => v.toFixed(0)+"¢");
   chart("cInCard", "cIn", metro.map(s => ({x:+new Date(s.date), y:s.inPct, s})), v => Math.round(v)+"%");
   chart("cSdCard", "cSd", long.map(s => ({x:+new Date(s.date), y:s.sd, s})), v => v.toFixed(1)+"¢");
   $("nbCard").hidden = !free.length; if(free.length) renderNoteBars(free);
@@ -1493,7 +2190,7 @@ function renderDash(){
 function sessResult(s){
   const m = sessMode(s);
   if(m === "long") return "±" + s.sd.toFixed(1) + "¢";
-  if(m === "metro") return s.inPct + "% in tune";
+  if(m === "metro" || isBlind(s)) return s.inPct + "% in tune";
   return (s.med/1000).toFixed(1) + "s";
 }
 function renderTraceView(){
@@ -1522,20 +2219,20 @@ function lineChart(box, pts, fmt){
   sv("path", {class:"line", d:dLine}, svg);
   const last = roll[roll.length-1];
   sv("circle", {class:"end", cx:X(last.x), cy:Y(last.y), r:4.5}, svg);
-  const cross = sv("line", {class:"cross", y1:T, y2:H-B, x1:-10, x2:-10}, svg);
+  const cross = sv("line", {class:"cross", y1:T, y2:H-B, x1:-10, x2:-10, visibility:"hidden"}, svg);
   const tip = document.createElement("div"); tip.className = "tip"; tip.hidden = true; box.appendChild(tip);
   const hit = sv("rect", {class:"hit", x:L, y:0, width:W-L-Rr, height:H}, svg);
   const move = e => {
     const r = svg.getBoundingClientRect(), mx = (e.clientX - r.left) * W / r.width;
     let bi = 0, bd = 1e9; pts.forEach((p,i) => { const d = Math.abs(X(p.x)-mx); if(d<bd){bd=d;bi=i;} });
     const p = pts[bi], px = X(p.x);
-    cross.setAttribute("x1", px); cross.setAttribute("x2", px);
+    cross.setAttribute("x1", px); cross.setAttribute("x2", px); cross.setAttribute("visibility", "visible");
     tip.hidden = false;
     tip.style.left = Math.min(Math.max(px*r.width/W, 80), r.width-80) + "px"; tip.style.top = (Y(p.y)*r.height/H) + "px";
     tip.innerHTML = `${fmtDate(new Date(p.x))} · <b>${fmt(p.y)}</b><br>${p.s.label.length > 34 ? p.s.label.slice(0,33)+"…" : p.s.label}<br>trend <b>${fmt(roll[bi].y)}</b>`;
   };
   hit.addEventListener("pointermove", move); hit.addEventListener("pointerdown", move);
-  hit.addEventListener("pointerleave", () => { tip.hidden = true; cross.setAttribute("x1",-10); cross.setAttribute("x2",-10); });
+  hit.addEventListener("pointerleave", () => { tip.hidden = true; cross.setAttribute("visibility","hidden"); });
 }
 function renderNoteBars(ss){
   const by = {};
@@ -1575,32 +2272,46 @@ function renderCal(){
 $("loadEx").onclick = () => {
   const ex = [], days = {};
   let seed = 7; const rnd = () => (seed = (seed*16807) % 2147483647) / 2147483647;
+  const gauss = () => (rnd() + rnd() + rnd() - 1.5) * 1.4;
   const scales = [{type:"major",tonic:"C",oct:1,start:"low",dir:"updown"},{type:"major",tonic:"G",oct:1,start:"low",dir:"updown"},{type:"major",tonic:"D",oct:1,start:"high",dir:"updown"}];
-  const mkTrace = (notes, prog) => { const p = [], m = []; let t = 0; notes.forEach((r, i) => { m.push([t, i]); const len = (r.t || 1500) + 500; for(let k=0; k<len; k+=70){ const c = (r.land||0) * Math.exp(-k/((r.t||1500)*0.4)) + (rnd()-.5)*(10-6*prog); p.push([t+k, Math.round(c)]); } t += len + 300; p.push([t-200, null]); }); return {p, m}; };
+  // example player: 4th finger creeps back, C-string notes sag, long tones fade toward the tip
+  const FB = {"0":-1, "½":-4, "1":-2, "2":-7, "3":-14, "4":-25, "up":-8};
+  const bias = (m, prog) => { const fg = fingering(m); return (FB[fg.f] + (fg.s === 36 && fg.f !== "0" ? -7 : 0)) * (1 - 0.3*prog); };
+  const mkTrace = (notes, prog) => { const p = [], m = []; let t = 0; notes.forEach((r, i) => { m.push([t, i]); const len = (r.t || 1500) + 500, end = r.fin != null ? r.fin : 0; for(let k=0; k<len; k+=70){ const c = end + ((r.land||0) - end) * Math.exp(-k/((r.t||1500)*0.4)) + (rnd()-.5)*(10-6*prog); p.push([t+k, Math.round(c)]); } t += len + 300; p.push([t-200, null]); }); return {p, m}; };
   for(let i=56; i>=0; i--){
     if(rnd() < 0.3) continue;
     const d = new Date(); d.setDate(d.getDate()-i); d.setHours(18, Math.floor(rnd()*50), 0, 0);
     const prog = 1 - i/56;
-    const kinds = ["scale"]; if(rnd() < .5) kinds.push("random"); if(rnd() < .35) kinds.push("long");
+    const kinds = ["scale"]; if(rnd() < .5) kinds.push("random"); if(rnd() < .4) kinds.push("long");
     kinds.forEach((kind, s) => {
       const id = "ex"+i+"_"+s, date = new Date(d.getTime() + s*600000).toISOString();
       if(kind === "long"){
-        const sd = Math.round((11 - 7*prog) * (0.7 + rnd()*0.6)*10)/10, mn = Math.round((rnd()-.5)*12*10)/10;
-        ex.push({id, example:true, date, game:"long", mode:"long", label:"Long tone · A3 · 8s", tol:10, notes:[{n:"A3", m:57, sd, mean:mn, inPct:Math.round(40+50*prog)}], sd, mean:mn, inPct:Math.round(40+50*prog), med:null, land:null, dur:9000});
+        const sd = r1((10 - 6*prog) * (0.7 + rnd()*0.6)), mn = r1(-3 + gauss()*3);
+        const vratio = Math.round((0.5 + 0.15*prog + gauss()*0.05)*100)/100, drops = rnd() < 0.5 - 0.4*prog ? 1 : 0;
+        const feat = {sd, mean:mn, inPct:Math.round(40+50*prog), drift:r1(-6 + gauss()*4), drops, vratio, vcv:Math.round((0.28 - 0.1*prog)*100)/100, clar:Math.round((0.9 + 0.05*prog)*1000)/1000, harm:0.01, att:Math.round(240 - 120*prog + gauss()*30)};
+        ex.push(Object.assign({id, example:true, date, game:"long", mode:"long", label:"Long tone · D3 · 8s", tol:10, feedback:"live", notes:[Object.assign({n:"D3", m:50}, feat)], med:null, land:null, dur:9000}, feat));
         return;
       }
       const st = scales[Math.floor(rnd()*3)];
+      const blindRun = i < 21 && rnd() < 0.45;
       let src = buildScale(st);
       if(kind === "random") src = Array.from({length:20}, () => src[Math.floor(rnd()*src.length)]);
       const notes = src.map(n => {
-        const hard = (n.L===3||n.acc) ? 1.35 : 1, rf = kind === "random" ? 1.3 : 1;
-        const t = Math.round((3400 - 2200*prog) * hard * rf * (0.55 + rnd()*0.9));
-        const land = Math.round((40 - 26*prog) * hard * (0.4 + rnd()*1.2) * (rnd()<.5?-1:1));
-        return {n:n.name, m:n.midi, t, land, acc:Math.round(4+rnd()*4)};
+        const b = bias(n.midi, prog), noise = 14 - 8*prog, rf = kind === "random" ? 1.3 : 1;
+        const t = Math.round((3400 - 2200*prog) * rf * (0.55 + rnd()*0.9) * (1 + Math.abs(b)/40));
+        const land = Math.round(b*1.3 + gauss()*noise);
+        const r = {n:n.name, m:n.midi, t, land, acc:Math.round(4+rnd()*4), sd:r1(3 + rnd()*4)};
+        if(blindRun) r.fin = r1(b + gauss()*6);
+        if(n.deg != null) r.d = n.deg;
+        if(n.acc) r.a = n.acc;
+        return r;
       });
-      const label = kind === "random" ? `Random · ${keyLabel(st)} · 1 oct${st.start==="high"?" · high":""} · smart` : scaleLabel(st);
-      ex.push({id, example:true, date, game:kind, mode:"free", label, tol:10, hold:500, notes, trace: i < 10 ? mkTrace(notes, prog) : undefined,
-        dur: notes.reduce((a,r)=>a+r.t+900,0), med: Math.round(median(notes.map(r=>r.t))), land: median(notes.map(r=>Math.abs(r.land))), partial:false});
+      const fb = blindRun ? "end" : "live";
+      const label = (kind === "random" ? `Random · ${keyLabel(st)} · 1 oct${st.start==="high"?" · high":""} · smart` : scaleLabel(st)) + (blindRun ? " · blind" : "");
+      const sess = {id, example:true, date, game:kind, mode:"free", label, tol:10, hold:500, feedback:fb, ktype:st.type, disp:"score", notes, trace: i < 10 ? mkTrace(notes, prog) : undefined,
+        dur: notes.reduce((a,r)=>a+r.t+900,0), med: Math.round(median(notes.map(r=>r.t))), land: median(notes.map(r=>Math.abs(r.land))), clar:Math.round((0.9+0.05*prog)*1000)/1000, partial:false};
+      if(blindRun){ sess.inPct = Math.round(notes.filter(r => Math.abs(r.fin) <= 10).length/notes.length*100); sess.bmed = r1(median(notes.map(r => Math.abs(r.fin)))); }
+      ex.push(sess);
     });
     days[dayKey(d)] = Math.round((8 + rnd()*22) * 60000);
   }
